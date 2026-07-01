@@ -1,4 +1,4 @@
-const CACHE_VERSION = '1782876108';
+const CACHE_VERSION = '1782876709';
 const CACHE_NAME = 'reel-mini-cache-' + CACHE_VERSION;
 const CACHE_URLS = [
   './index.html',
