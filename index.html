@@ -80,7 +80,7 @@ body.light-theme{--bg:#F5F3EE;--surface:#FFFFFF;--surface-2:#E8E8ED;--text:#0D0D
 <main id="main"></main>
 <div class="modal" id="addModal"><div class="modal-content"><button class="modal-close" id="addClose">▽</button><h3>動画を追加</h3><input type="text" id="urlInput" placeholder="URL"><input type="text" id="titleInput" placeholder="タイトル"><div class="modal-actions"><button class="btn-cancel" id="addCancel">キャンセル</button><button class="btn-save" id="addSave">保存</button></div></div></div>
 <div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>削除</h3><div class="modal-actions"><button class="btn-cancel" id="deleteCancel">キャンセル</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div></div></div>
-<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.6 | REEL-MINI 2024</p></div></div></div>
+<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.7 | REEL-MINI 2024</p></div></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
 <div style="width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
@@ -186,26 +186,25 @@ function cleanupStaleDeletedEntries(){
 }
 
 // 共有機能・手動追加フォームの両方から呼ばれる共通保存処理
-const GAS_TITLE_API='https://script.google.com/macros/s/AKfycbyVVg1DBlJ-L0QTc3EH8DgMrRVQuayTzuD8MCLY1a03HQmINYTR23W-aiP2vB86l_A/exec';
+const TITLE_MAX_LENGTH=60;
 
-// GAS経由でYouTube以外の動画タイトルを取得する。失敗時はnullを返し、呼び出し側でフォールバックする
-async function fetchTitleFromGAS(url){
-  try{
-    const controller=new AbortController();
-    const timeoutId=setTimeout(()=>controller.abort(),5000);
-    const res=await fetch(`${GAS_TITLE_API}?url=${encodeURIComponent(url)}`,{signal:controller.signal});
-    clearTimeout(timeoutId);
-    if(!res.ok)return null;
-    const data=await res.json();
-    if(data&&typeof data.title==='string'&&data.title.trim())return data.title.trim();
-    return null;
-  }catch(e){
-    console.error('GASタイトル取得エラー:',e);
-    return null;
+// 共有テキストからURL部分を除去し、残りの文章（本文・ハッシュタグ等）をタイトルとして抽出する
+function extractTitleFromSharedText(text,url){
+  if(!text)return'';
+  let cleaned=text;
+  if(url){
+    cleaned=cleaned.split(url).join('');
   }
+  // 万一urlと完全一致しないURL断片が残っていた場合の保険として、汎用URLパターンも除去
+  cleaned=cleaned.replace(/https?:\/\/[^\s]+/g,'');
+  cleaned=cleaned.trim().replace(/\s+/g,' ');
+  if(cleaned.length>TITLE_MAX_LENGTH){
+    cleaned=cleaned.slice(0,TITLE_MAX_LENGTH)+'…';
+  }
+  return cleaned;
 }
 
-async function addItem(url,title){
+function addItem(url,title){
   if(!url){ui.toast('URLを入力してください');return false}
   try{new URL(url)}catch(e){ui.toast('有効なURLを入力してください');return false}
 
@@ -218,20 +217,10 @@ async function addItem(url,title){
     if(vid)thumb=`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
   }
 
-  // ユーザーがタイトルを未入力かつYouTube以外の場合、GASでタイトル自動取得を試みる
-  let finalTitle=title;
-  if(!finalTitle&&platform!=='youtube'){
-    const loading=document.getElementById('loading');
-    if(loading)loading.classList.add('show');
-    const fetchedTitle=await fetchTitleFromGAS(url);
-    if(loading)loading.classList.remove('show');
-    finalTitle=fetchedTitle||'';
-  }
-
   items.push({
     id:`${Date.now()}-${Math.random().toString(36).substr(2,9)}`,
     url,platform,
-    title:finalTitle||`動画-${platform}`,
+    title:title||`動画-${platform}`,
     thumb,favorite:false,timestamp:Date.now()
   });
   db.save();
@@ -244,10 +233,10 @@ async function addItem(url,title){
   return true;
 }
 
-async function saveVideo(){
+function saveVideo(){
   const url=document.getElementById('urlInput').value.trim(),
         title=document.getElementById('titleInput').value.trim();
-  const ok=await addItem(url,title);
+  const ok=addItem(url,title);
   if(ok){
     ui.closeModal('addModal');
     ui.toast('保存しました');
@@ -255,11 +244,11 @@ async function saveVideo(){
 }
 
 // Web Share Target APIからの起動時、URLパラメータを読み取って自動保存する
-async function handleShareTarget(){
+function handleShareTarget(){
   const params=new URLSearchParams(window.location.search);
   const hadParams=!!window.location.search;
   let sharedUrl=(params.get('url')||'').trim();
-  const sharedTitle=(params.get('title')||'').trim();
+  const sharedTitleParam=(params.get('title')||'').trim();
   const sharedText=(params.get('text')||'').trim();
 
   // 一部アプリはURLをtextパラメータに埋め込んで渡してくるため、そこからも抽出する
@@ -269,11 +258,16 @@ async function handleShareTarget(){
   }
 
   if(sharedUrl){
-    // YouTube以外はシステムが付与する不要な共有タイトル（「〇〇さんをチェック！」等）を捨て、
-    // 空文字列にしてaddItemに渡すことで、GASによるタイトル自動取得を確実に発動させる
     const sharedPlatform=detectPlatform(sharedUrl);
-    const titleToUse=(sharedPlatform==='youtube')?sharedTitle:'';
-    const ok=await addItem(sharedUrl,titleToUse);
+    let titleToUse;
+    if(sharedPlatform==='youtube'){
+      // YouTubeはシステムが渡すtitleパラメータが動画タイトルそのものなのでそのまま使う
+      titleToUse=sharedTitleParam;
+    }else{
+      // TikTok/Instagram/その他は、textパラメータからURLを除去した残りをタイトルとして使う
+      titleToUse=extractTitleFromSharedText(sharedText,sharedUrl)||sharedTitleParam;
+    }
+    const ok=addItem(sharedUrl,titleToUse);
     if(ok){
       ui.toast('共有された動画を保存しました');
     }
