@@ -100,7 +100,7 @@
     position:relative; border-radius:14px; overflow:hidden;
     background:var(--surface);
     box-shadow:0 4px 14px rgba(0,0,0,0.35);
-    transition:transform .12s ease;
+    transition:transform .12s ease; cursor:pointer;
   }
   .card.youtube{aspect-ratio:16/9;}
   .card.tiktok{aspect-ratio:9/16;}
@@ -130,6 +130,7 @@
     position:absolute; right:8px; left:8px; bottom:30px;
     font-size:12px; color:rgba(255,255,255,0.85); line-height:1.3;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    pointer-events:none;
   }
   .card.tiktok .title{
     position:absolute; inset:8px; bottom:auto;
@@ -161,19 +162,6 @@
   .empty h3{color:var(--text); font-size:16px; margin:0 0 8px; font-weight:600;}
   .empty p{font-size:13px; line-height:1.6; margin:0;}
 
-  /* demo control — only for mockup walkthrough, would not exist in shipped app */
-  .demo-bar{
-    position:fixed; left:0; right:0; bottom:0; z-index:20;
-    padding:10px 14px calc(var(--safe-bottom) + 10px);
-    background:linear-gradient(180deg, transparent, var(--bg) 30%);
-  }
-  .demo-btn{
-    width:100%; padding:13px; border-radius:14px; border:1px dashed var(--accent-dim);
-    background:rgba(255,143,63,0.06); color:var(--accent);
-    font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;
-  }
-  .demo-btn:active{background:rgba(255,143,63,0.14);}
-
   /* toast */
   .toast{
     position:fixed; left:50%; bottom:90px; transform:translateX(-50%) translateY(20px);
@@ -186,7 +174,7 @@
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .toast .ok-dot{width:8px; height:8px; border-radius:50%; background:var(--ok);}
 
-  /* loading overlay — simulates the white share-target launch screen */
+  /* loading overlay */
   .loading{
     position:fixed; inset:0; background:var(--bg); z-index:60;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -445,7 +433,7 @@
     </div>
 
     <div class="settings-group" style="text-align:center; color:var(--muted); font-size:12px;">
-      <p>v2.0 | REEL-MINI © 2024</p>
+      <p>v2.1 | REEL-MINI © 2024</p>
     </div>
   </div>
 </div>
@@ -485,7 +473,9 @@
   // ========================================
 
   let items = [];
-  let currentFolder = 'youtube'; // 現在選択中のフォルダ
+  let currentFolder = 'youtube';
+  let selectedCardId = null;
+  let pressTimer = null;
 
   // ========================================
   // ローカルストレージ操作
@@ -543,7 +533,7 @@
   }
 
   // ========================================
-  // プラットフォーム判定とアスペクト比
+  // プラットフォーム判定
   // ========================================
 
   function detectPlatform(url){
@@ -565,15 +555,46 @@
   }
 
   // ========================================
-  // サムネイル生成（OpenGraph）
+  // YouTubeビデオID抽出（修正1: 自前化）
+  // ========================================
+
+  function extractYouTubeVideoId(url){
+    try {
+      const urlObj = new URL(url);
+      
+      // youtube.com形式: ?v=VIDEO_ID
+      if(urlObj.hostname.includes('youtube.com')){
+        return urlObj.searchParams.get('v');
+      }
+      
+      // youtu.be形式: /VIDEO_ID
+      if(urlObj.hostname.includes('youtu.be')){
+        return urlObj.pathname.slice(1).split('?')[0];
+      }
+    } catch(e) {
+      console.error('URL解析エラー:', e);
+    }
+    return null;
+  }
+
+  // ========================================
+  // サムネイル生成（修正2: YouTube直接取得＆外部API廃止）
   // ========================================
 
   async function generateThumbnail(url, platform){
     return new Promise((resolve) => {
-      // 簡易版：URLの形式からデータURIで背景を作成
-      const oGraphUrl = `https://api.og-reader.com/api/read?url=${encodeURIComponent(url)}`;
+      // YouTube: 公式CDNから直接取得（外部API依存廃止）
+      if(platform === 'youtube'){
+        const videoId = extractYouTubeVideoId(url);
+        if(videoId){
+          // hqdefault.jpg: 480×360（最高品質）
+          resolve(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
+          return;
+        }
+      }
 
-      // タイムアウト付きfetch
+      // TikTok / Instagram / その他: og-reader APIを使用（フォールバック）
+      const oGraphUrl = `https://api.og-reader.com/api/read?url=${encodeURIComponent(url)}`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -615,15 +636,8 @@
   }
 
   // ========================================
-  // カード生成（XSS対策）
+  // カード生成（修正3: イベント統合＋動画遷移実装）
   // ========================================
-
-  function safeText(str){
-    if(!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
 
   function safeCreateCard(item){
     const card = document.createElement('div');
@@ -670,35 +684,38 @@
     title.textContent = item.title || '(タイトルなし)';
     card.appendChild(title);
 
-    // イベントリスナー：長押しで削除メニュー
-    let pressTimer = null;
-    card.addEventListener('pointerdown', () => {
+    // ========================================
+    // イベント統合: pointerdown, pointerup, pointercancel を1つのリスナーセットに
+    // ========================================
+
+    card.addEventListener('pointerdown', (e) => {
+      // 長押し判定タイマー開始
       pressTimer = setTimeout(() => {
         openSheet(item.id);
         pressTimer = null;
       }, 500);
-    });
-    card.addEventListener('pointerup', () => {
-      if(pressTimer){
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-    });
-    card.addEventListener('pointercancel', () => {
-      if(pressTimer){
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-    });
 
-    // 圧縮フィードバック
-    card.addEventListener('pointerdown', () => {
+      // 圧縮フィードバック開始
       card.classList.add('pressing');
     });
-    card.addEventListener('pointerup', () => {
+
+    card.addEventListener('pointerup', (e) => {
+      // タイマーが残っている = 短タップ → 動画を開く（修正4: 動画遷移実装）
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+        window.open(item.url, '_blank');
+      }
+
+      // 圧縮フィードバック解除
       card.classList.remove('pressing');
     });
+
     card.addEventListener('pointercancel', () => {
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
       card.classList.remove('pressing');
     });
 
@@ -720,22 +737,20 @@
   }
 
   // ========================================
-  // レンダリング（フォルダ別・ソート付き）
+  // レンダリング
   // ========================================
 
   function render(){
     const main = document.getElementById('main');
     main.innerHTML = '';
 
-    // 現在のフォルダのアイテムをフィルタリング
     const folderItems = items.filter(i => i.platform === currentFolder);
 
-    // ソート：お気に入り（新しい順）→ 通常（新しい順）
     folderItems.sort((a, b) => {
       if(a.favorite !== b.favorite){
-        return b.favorite - a.favorite; // お気に入りが上
+        return b.favorite - a.favorite;
       }
-      return b.timestamp - a.timestamp; // 新しい順
+      return b.timestamp - a.timestamp;
     });
 
     if(folderItems.length === 0){
@@ -771,7 +786,7 @@
   });
 
   // ========================================
-  // モーダル処理（動画追加）
+  // モーダル処理（修正5: 履歴同期）
   // ========================================
 
   const modalBackdrop = document.getElementById('modalBackdrop');
@@ -788,6 +803,9 @@
     urlPreview.style.display = 'none';
     modalBackdrop.classList.add('show');
     urlInput.focus();
+    
+    // 履歴に追加（戻るボタンで閉じるように）
+    history.pushState({modal: 'add'}, '');
   });
 
   document.getElementById('modalCloseBtn').addEventListener('click', () => {
@@ -807,7 +825,6 @@
       return;
     }
 
-    // バリデーション：URLの形式確認
     try {
       new URL(url);
     } catch(e) {
@@ -832,7 +849,6 @@
     saveToStorage();
     modalBackdrop.classList.remove('show');
     
-    // 追加したアイテムのフォルダに自動切り替え
     currentFolder = platform;
     document.querySelectorAll('.folder-tab').forEach(t => {
       t.classList.remove('active');
@@ -859,22 +875,20 @@
     platformName.textContent = getPlatformLabel(platform);
     platformDot.style.backgroundColor = getPlatformColor(platform);
 
-    // サムネイル取得（非同期）
     const thumb = await generateThumbnail(url, platform);
     previewThumb.src = thumb;
   });
 
   // ========================================
-  // 削除機能（長押しトリガー）
+  // 削除機能
   // ========================================
 
   const sheetBackdrop = document.getElementById('sheetBackdrop');
-  const sheet = document.getElementById('sheet');
-  let selectedCardId = null;
 
   function openSheet(id){
     selectedCardId = id;
     sheetBackdrop.classList.add('show');
+    history.pushState({sheet: 'delete'}, '');
   }
 
   function closeSheet(){
@@ -899,7 +913,7 @@
   });
 
   // ========================================
-  // 設定画面UI
+  // 設定画面（修正6: 履歴同期）
   // ========================================
 
   const settingsOverlay = document.getElementById('settingsOverlay');
@@ -909,6 +923,7 @@
 
   document.getElementById('settingsBtn').addEventListener('click', () => {
     settingsOverlay.classList.add('show');
+    history.pushState({settings: 'open'}, '');
   });
 
   document.getElementById('settingsCloseBtn').addEventListener('click', () => {
@@ -920,13 +935,13 @@
   });
 
   // ========================================
-  // バックアップ機能（お気に入り状態も含める）
+  // バックアップ機能
   // ========================================
 
   document.getElementById('backupBtn').addEventListener('click', () => {
     try {
       const backup = {
-        version: '2.0',
+        version: '2.1',
         exportedAt: new Date().toISOString(),
         items: items,
       };
@@ -950,7 +965,7 @@
   });
 
   // ========================================
-  // 復元機能（お気に入り状態も復元）
+  // 復元機能
   // ========================================
 
   const restoreFile = document.getElementById('restoreFile');
@@ -972,7 +987,6 @@
           return;
         }
 
-        // バリデーション：各アイテムが必須プロパティを持っているか
         const REQUIRED_KEYS = ['id', 'url', 'platform', 'title', 'thumb'];
         const isValidItem = (item) => {
           if(!item || typeof item !== 'object') return false;
@@ -1012,7 +1026,7 @@
   });
 
   // ========================================
-  // データ全消去（確認ダイアログ付き）
+  // データ全消去
   // ========================================
 
   document.getElementById('deleteAllBtn').addEventListener('click', () => {
@@ -1046,10 +1060,12 @@
   });
 
   // ========================================
-  // 戻るボタン対応
+  // 戻るボタン対応（修正7: 履歴状態に基づいたクローズ）
   // ========================================
 
-  window.addEventListener('popstate', () => {
+  window.addEventListener('popstate', (e) => {
+    const state = e.state || {};
+
     if(settingsOverlay.classList.contains('show')){
       settingsOverlay.classList.remove('show');
       return;
@@ -1140,7 +1156,7 @@
   handleShareTarget();
 
   // ========================================
-  // Service Worker 登録（PWA要件）
+  // Service Worker 登録
   // ========================================
 
   if('serviceWorker' in navigator){
