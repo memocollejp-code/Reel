@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reel-mini-cache-v1';
+const CACHE_NAME = 'reel-mini-cache-v2';
 const CACHE_URLS = [
   './index.html',
   './manifest.json',
