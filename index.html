@@ -81,7 +81,7 @@ body.light-theme{--bg:#F5F3EE;--surface:#FFFFFF;--surface-2:#E8E8ED;--text:#0D0D
 <div class="modal" id="addModal"><div class="modal-content"><button class="modal-close" id="addClose">▽</button><h3>動画を追加</h3><input type="text" id="urlInput" placeholder="URL"><input type="text" id="titleInput" placeholder="タイトル"><div class="modal-actions"><button class="btn-cancel" id="addCancel">キャンセル</button><button class="btn-save" id="addSave">保存</button></div></div></div>
 <div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>操作を選択</h3><div class="modal-actions"><button class="btn-cancel" id="deleteEditBtn">タイトル編集</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div><div class="modal-actions" style="margin-top:8px;"><button class="btn-cancel" id="deleteCancel">キャンセル</button></div></div></div>
 <div class="modal" id="editTitleModal"><div class="modal-content"><button class="modal-close" id="editTitleClose">▽</button><h3>タイトルを編集</h3><input type="text" id="editTitleInput" placeholder="タイトルを入力"><div class="modal-actions"><button class="btn-cancel" id="editTitleCancel">キャンセル</button><button class="btn-save" id="editTitleSave">保存</button></div></div></div>
-<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.8 | REEL-MINI 2024</p></div></div></div>
+<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.9 | REEL-MINI 2024</p></div></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
 <div style="width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
@@ -123,7 +123,7 @@ const ui={
       ab.onclick=()=>{
         t.classList.remove('show');
         if(undoTimeoutId){clearTimeout(undoTimeoutId);undoTimeoutId=null;}
-        action.onAction();
+        requestAnimationFrame(()=>action.onAction());
       };
       t.appendChild(ab);
     }
@@ -449,9 +449,16 @@ function openEditTitleModal(id){
   const item=items.find(i=>i.id===id);
   if(!item)return;
   editingId=id;
-  document.getElementById('editTitleInput').value=item.title;
+  const input=document.getElementById('editTitleInput');
+  input.value=item.title;
   ui.showModal('editTitleModal');
-  document.getElementById('editTitleInput').focus();
+  // モーダルのdisplay切り替えが確実に反映された後にフォーカスすることで、
+  // トーストのクリック処理やCSS遷移との競合によるキーボード即閉じを防ぐ
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      input.focus();
+    });
+  });
 }
 
 function saveEditedTitle(){
@@ -497,7 +504,9 @@ document.getElementById('deleteConfirm').onclick=confirmDelete;
 document.getElementById('deleteEditBtn').onclick=()=>{
   const targetId=selectedId;
   ui.closeModal('deleteModal');
-  openEditTitleModal(targetId);
+  // closeModalのhistory.back()とshowModalのhistory.pushState()を同フレームで連打すると
+  // popstateの処理が競合してモーダルが即座に閉じることがあるため、次フレームにずらす
+  requestAnimationFrame(()=>openEditTitleModal(targetId));
 };
 
 document.getElementById('editTitleClose').onclick=()=>{ui.closeModal('editTitleModal');editingId=null;};
