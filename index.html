@@ -79,8 +79,9 @@ body.light-theme{--bg:#F5F3EE;--surface:#FFFFFF;--surface-2:#E8E8ED;--text:#0D0D
 </div>
 <main id="main"></main>
 <div class="modal" id="addModal"><div class="modal-content"><button class="modal-close" id="addClose">▽</button><h3>動画を追加</h3><input type="text" id="urlInput" placeholder="URL"><input type="text" id="titleInput" placeholder="タイトル"><div class="modal-actions"><button class="btn-cancel" id="addCancel">キャンセル</button><button class="btn-save" id="addSave">保存</button></div></div></div>
-<div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>削除</h3><div class="modal-actions"><button class="btn-cancel" id="deleteCancel">キャンセル</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div></div></div>
-<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.7 | REEL-MINI 2024</p></div></div></div>
+<div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>操作を選択</h3><div class="modal-actions"><button class="btn-cancel" id="deleteEditBtn">タイトル編集</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div><div class="modal-actions" style="margin-top:8px;"><button class="btn-cancel" id="deleteCancel">キャンセル</button></div></div></div>
+<div class="modal" id="editTitleModal"><div class="modal-content"><button class="modal-close" id="editTitleClose">▽</button><h3>タイトルを編集</h3><input type="text" id="editTitleInput" placeholder="タイトルを入力"><div class="modal-actions"><button class="btn-cancel" id="editTitleCancel">キャンセル</button><button class="btn-save" id="editTitleSave">保存</button></div></div></div>
+<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.8 | REEL-MINI 2024</p></div></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
 <div style="width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
@@ -98,23 +99,38 @@ const db={
 };
 
 const ui={
-  toast:(msg,hasUndo=false)=>{
+  toast:(msg,opts=false)=>{
+    // 互換性維持: 第2引数がtrueなら既存のUndoボタン仕様として扱う。
+    // オブジェクトが渡された場合は{actionLabel, onAction}で汎用アクションボタンを表示する。
+    const isUndo=opts===true;
+    const action=(opts&&typeof opts==='object')?opts:null;
+
     const t=document.getElementById('toast'),m=document.getElementById('toastMsg');
     if(undoTimeoutId)clearTimeout(undoTimeoutId);
     m.textContent=msg;
     const b=t.querySelector('.toast-undo');
     if(b)b.remove();
-    if(hasUndo){
+    if(isUndo){
       const ub=document.createElement('button');
       ub.className='toast-undo';
       ub.textContent='元に戻す';
       ub.onclick=doUndo;
       t.appendChild(ub);
+    }else if(action&&action.actionLabel&&action.onAction){
+      const ab=document.createElement('button');
+      ab.className='toast-undo';
+      ab.textContent=action.actionLabel;
+      ab.onclick=()=>{
+        t.classList.remove('show');
+        if(undoTimeoutId){clearTimeout(undoTimeoutId);undoTimeoutId=null;}
+        action.onAction();
+      };
+      t.appendChild(ab);
     }
     t.classList.add('show');
     undoTimeoutId=setTimeout(()=>{
       t.classList.remove('show');
-      if(!hasUndo&&currentDeletedId)delete deletedStateMap[currentDeletedId];
+      if(!isUndo&&currentDeletedId)delete deletedStateMap[currentDeletedId];
       undoTimeoutId=null;
       currentDeletedId=null;
     },3000);
@@ -205,11 +221,11 @@ function extractTitleFromSharedText(text,url){
 }
 
 function addItem(url,title){
-  if(!url){ui.toast('URLを入力してください');return false}
-  try{new URL(url)}catch(e){ui.toast('有効なURLを入力してください');return false}
+  if(!url){ui.toast('URLを入力してください');return null}
+  try{new URL(url)}catch(e){ui.toast('有効なURLを入力してください');return null}
 
   const platform=detectPlatform(url);
-  if(isDuplicate(url,platform)){ui.toast('この動画は既に保存されています');return false}
+  if(isDuplicate(url,platform)){ui.toast('この動画は既に保存されています');return null}
 
   let thumb=null;
   if(platform==='youtube'){
@@ -217,12 +233,14 @@ function addItem(url,title){
     if(vid)thumb=`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
   }
 
-  items.push({
+  const isAutoTitle=!title; // ユーザー・システムから有効なタイトルが渡されなかった場合
+  const newItem={
     id:`${Date.now()}-${Math.random().toString(36).substr(2,9)}`,
     url,platform,
     title:title||`動画-${platform}`,
     thumb,favorite:false,timestamp:Date.now()
-  });
+  };
+  items.push(newItem);
   db.save();
   currentFolder=platform;
   document.querySelectorAll('.folder-tab').forEach(t=>{
@@ -230,14 +248,14 @@ function addItem(url,title){
     if(t.dataset.folder===platform)t.classList.add('active');
   });
   render();
-  return true;
+  return {id:newItem.id,platform,isAutoTitle};
 }
 
 function saveVideo(){
   const url=document.getElementById('urlInput').value.trim(),
         title=document.getElementById('titleInput').value.trim();
-  const ok=addItem(url,title);
-  if(ok){
+  const result=addItem(url,title);
+  if(result){
     ui.closeModal('addModal');
     ui.toast('保存しました');
   }
@@ -261,15 +279,24 @@ function handleShareTarget(){
     const sharedPlatform=detectPlatform(sharedUrl);
     let titleToUse;
     if(sharedPlatform==='youtube'){
-      // YouTubeはシステムが渡すtitleパラメータが動画タイトルそのものなのでそのまま使う
+      // YouTubeはシステムが渡すtitleパラメータが動画タイトルそのものなのでそのまま使う（変更なし）
       titleToUse=sharedTitleParam;
     }else{
       // TikTok/Instagram/その他は、textパラメータからURLを除去した残りをタイトルとして使う
       titleToUse=extractTitleFromSharedText(sharedText,sharedUrl)||sharedTitleParam;
     }
-    const ok=addItem(sharedUrl,titleToUse);
-    if(ok){
-      ui.toast('共有された動画を保存しました');
+    const result=addItem(sharedUrl,titleToUse);
+    if(result){
+      // YouTube以外で、かつ自動フォールバック名（動画-tiktok等）になった場合のみ、
+      // トーストに「名前をつける」ショートカットを表示する（分岐C）。YouTubeの挙動は変更しない。
+      if(result.platform!=='youtube'&&result.isAutoTitle){
+        ui.toast('共有された動画を保存しました',{
+          actionLabel:'名前をつける',
+          onAction:()=>openEditTitleModal(result.id)
+        });
+      }else{
+        ui.toast('共有された動画を保存しました');
+      }
     }
   }
 
@@ -415,6 +442,31 @@ function confirmDelete(){
   }
 }
 
+let editingId=null;
+
+// カードのタイトルを編集するモーダルを開く。長押しモーダル経由・トーストのショートカット経由の両方から呼ばれる
+function openEditTitleModal(id){
+  const item=items.find(i=>i.id===id);
+  if(!item)return;
+  editingId=id;
+  document.getElementById('editTitleInput').value=item.title;
+  ui.showModal('editTitleModal');
+  document.getElementById('editTitleInput').focus();
+}
+
+function saveEditedTitle(){
+  if(!editingId)return;
+  const item=items.find(i=>i.id===editingId);
+  if(!item)return;
+  const newTitle=document.getElementById('editTitleInput').value.trim();
+  item.title=newTitle||item.title;
+  db.save();
+  render();
+  ui.closeModal('editTitleModal');
+  editingId=null;
+  ui.toast('タイトルを変更しました');
+}
+
 function doUndo(){
   const targetId=currentDeletedId;
   if(targetId&&deletedStateMap[targetId]){
@@ -442,6 +494,15 @@ document.getElementById('addSave').onclick=saveVideo;
 document.getElementById('deleteClose').onclick=()=>ui.closeModal('deleteModal');
 document.getElementById('deleteCancel').onclick=()=>ui.closeModal('deleteModal');
 document.getElementById('deleteConfirm').onclick=confirmDelete;
+document.getElementById('deleteEditBtn').onclick=()=>{
+  const targetId=selectedId;
+  ui.closeModal('deleteModal');
+  openEditTitleModal(targetId);
+};
+
+document.getElementById('editTitleClose').onclick=()=>{ui.closeModal('editTitleModal');editingId=null;};
+document.getElementById('editTitleCancel').onclick=()=>{ui.closeModal('editTitleModal');editingId=null;};
+document.getElementById('editTitleSave').onclick=saveEditedTitle;
 
 document.querySelectorAll('.folder-tab').forEach(t=>{
   t.onclick=()=>{
@@ -527,7 +588,9 @@ window.addEventListener('popstate',()=>{
   document.getElementById('addModal').classList.remove('show');
   document.getElementById('deleteModal').classList.remove('show');
   document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('editTitleModal').classList.remove('show');
   selectedId=null;
+  editingId=null;
 });
 
 if(history.length===1)window.history.pushState({page:'main'},null);
