@@ -1,9 +1,9 @@
 const CACHE_NAME = 'reel-mini-cache-v1';
 const CACHE_URLS = [
-  './reel-mini-mockup_4.html',
+  './index.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
 // ========================================
