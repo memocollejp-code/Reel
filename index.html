@@ -23,7 +23,7 @@ header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-
 .folder-tab.active{background:var(--accent);color:#16100A;}
 main{flex:1;overflow-y:auto;padding:14px 14px calc(var(--safe-bottom)+90px);}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.card{position:relative;border-radius:14px;overflow:hidden;background:var(--surface);cursor:pointer;touch-action:pan-y;}
+.card{position:relative;border-radius:14px;overflow:hidden;background:var(--surface);cursor:pointer;touch-action:pan-y;-webkit-touch-callout:none;user-select:none;}
 .card.youtube{aspect-ratio:16/9;}
 .card.tiktok{aspect-ratio:9/16;}
 .card.instagram{aspect-ratio:1/1;}
@@ -33,6 +33,9 @@ main{flex:1;overflow-y:auto;padding:14px 14px calc(var(--safe-bottom)+90px);}
 .card.tiktok .grad{background:linear-gradient(180deg,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.3) 30%,rgba(0,0,0,0) 55%);}
 .card .title{position:absolute;bottom:40px;left:8px;right:50px;font-size:12px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.6);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card.tiktok .title{bottom:auto;top:12px;-webkit-line-clamp:3;font-size:14px;font-weight:700;}
+.card.no-thumb .icon-bg{opacity:0.55;}
+.card.no-thumb .title{background:rgba(0,0,0,0.55);padding:6px 8px;border-radius:8px;font-size:13px;left:8px;right:8px;bottom:36px;}
+.card.no-thumb.tiktok .title{bottom:auto;top:10px;font-size:15px;}
 .card .fav-btn{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;color:#fff;cursor:pointer;z-index:5;}
 .card .badge{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:100px;font-size:11px;color:#fff;z-index:3;}
 .card.pressing{transform:scale(0.97);transition:transform .15s;}
@@ -77,7 +80,7 @@ body.light-theme{--bg:#F5F3EE;--surface:#FFFFFF;--surface-2:#E8E8ED;--text:#0D0D
 <main id="main"></main>
 <div class="modal" id="addModal"><div class="modal-content"><button class="modal-close" id="addClose">▽</button><h3>動画を追加</h3><input type="text" id="urlInput" placeholder="URL"><input type="text" id="titleInput" placeholder="タイトル"><div class="modal-actions"><button class="btn-cancel" id="addCancel">キャンセル</button><button class="btn-save" id="addSave">保存</button></div></div></div>
 <div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>削除</h3><div class="modal-actions"><button class="btn-cancel" id="deleteCancel">キャンセル</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div></div></div>
-<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.2 | REEL-MINI 2024</p></div></div></div>
+<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.6 | REEL-MINI 2024</p></div></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
 <div style="width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
@@ -183,7 +186,26 @@ function cleanupStaleDeletedEntries(){
 }
 
 // 共有機能・手動追加フォームの両方から呼ばれる共通保存処理
-function addItem(url,title){
+const GAS_TITLE_API='https://script.google.com/macros/s/AKfycbyVVg1DBlJ-L0QTc3EH8DgMrRVQuayTzuD8MCLY1a03HQmINYTR23W-aiP2vB86l_A/exec';
+
+// GAS経由でYouTube以外の動画タイトルを取得する。失敗時はnullを返し、呼び出し側でフォールバックする
+async function fetchTitleFromGAS(url){
+  try{
+    const controller=new AbortController();
+    const timeoutId=setTimeout(()=>controller.abort(),5000);
+    const res=await fetch(`${GAS_TITLE_API}?url=${encodeURIComponent(url)}`,{signal:controller.signal});
+    clearTimeout(timeoutId);
+    if(!res.ok)return null;
+    const data=await res.json();
+    if(data&&typeof data.title==='string'&&data.title.trim())return data.title.trim();
+    return null;
+  }catch(e){
+    console.error('GASタイトル取得エラー:',e);
+    return null;
+  }
+}
+
+async function addItem(url,title){
   if(!url){ui.toast('URLを入力してください');return false}
   try{new URL(url)}catch(e){ui.toast('有効なURLを入力してください');return false}
 
@@ -196,10 +218,20 @@ function addItem(url,title){
     if(vid)thumb=`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
   }
 
+  // ユーザーがタイトルを未入力かつYouTube以外の場合、GASでタイトル自動取得を試みる
+  let finalTitle=title;
+  if(!finalTitle&&platform!=='youtube'){
+    const loading=document.getElementById('loading');
+    if(loading)loading.classList.add('show');
+    const fetchedTitle=await fetchTitleFromGAS(url);
+    if(loading)loading.classList.remove('show');
+    finalTitle=fetchedTitle||'';
+  }
+
   items.push({
     id:`${Date.now()}-${Math.random().toString(36).substr(2,9)}`,
     url,platform,
-    title:title||`動画-${platform}`,
+    title:finalTitle||`動画-${platform}`,
     thumb,favorite:false,timestamp:Date.now()
   });
   db.save();
@@ -212,10 +244,10 @@ function addItem(url,title){
   return true;
 }
 
-function saveVideo(){
+async function saveVideo(){
   const url=document.getElementById('urlInput').value.trim(),
         title=document.getElementById('titleInput').value.trim();
-  const ok=addItem(url,title);
+  const ok=await addItem(url,title);
   if(ok){
     ui.closeModal('addModal');
     ui.toast('保存しました');
@@ -223,7 +255,7 @@ function saveVideo(){
 }
 
 // Web Share Target APIからの起動時、URLパラメータを読み取って自動保存する
-function handleShareTarget(){
+async function handleShareTarget(){
   const params=new URLSearchParams(window.location.search);
   const hadParams=!!window.location.search;
   let sharedUrl=(params.get('url')||'').trim();
@@ -237,10 +269,11 @@ function handleShareTarget(){
   }
 
   if(sharedUrl){
-    const loading=document.getElementById('loading');
-    if(loading)loading.classList.add('show');
-    const ok=addItem(sharedUrl,sharedTitle);
-    if(loading)loading.classList.remove('show');
+    // YouTube以外はシステムが付与する不要な共有タイトル（「〇〇さんをチェック！」等）を捨て、
+    // 空文字列にしてaddItemに渡すことで、GASによるタイトル自動取得を確実に発動させる
+    const sharedPlatform=detectPlatform(sharedUrl);
+    const titleToUse=(sharedPlatform==='youtube')?sharedTitle:'';
+    const ok=await addItem(sharedUrl,titleToUse);
     if(ok){
       ui.toast('共有された動画を保存しました');
     }
@@ -265,6 +298,9 @@ function renderCard(item){
     img.src=item.thumb;
     img.onerror=()=>img.style.display='none';
     c.appendChild(img);
+  }else{
+    // サムネイルが存在しない場合、視認性強化用のクラスを付与
+    c.classList.add('no-thumb');
   }
 
   const platformStyle={
@@ -275,7 +311,8 @@ function renderCard(item){
   }[item.platform];
 
   const bg=document.createElement('div');
-  bg.style.cssText=`position:absolute;inset:0;background:linear-gradient(135deg,${platformStyle.c1} 0%,${platformStyle.c2} 100%);display:${item.thumb?'none':'flex'};align-items:center;justify-content:center;font-size:44px;color:rgba(255,255,255,0.35);`;
+  bg.className='icon-bg';
+  bg.style.cssText=`position:absolute;inset:0;background:linear-gradient(135deg,${platformStyle.c1} 0%,${platformStyle.c2} 100%);display:${item.thumb?'none':'flex'};align-items:center;justify-content:center;font-size:44px;`;
   bg.textContent=platformStyle.icon;
   c.appendChild(bg);
 
