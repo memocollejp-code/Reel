@@ -29,9 +29,9 @@ main{flex:1;overflow-y:auto;padding:14px 14px calc(var(--safe-bottom)+90px);}
 .card.instagram{aspect-ratio:1/1;}
 .card.other{aspect-ratio:9/14;}
 .card img{width:100%;height:100%;object-fit:cover;}
-.card .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.9) 100%);}
-.card.tiktok .grad{background:linear-gradient(180deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 100%);}
-.card .title{position:absolute;bottom:40px;left:8px;right:50px;font-size:12px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.55) 70%,rgba(0,0,0,0.95) 100%);}
+.card.tiktok .grad{background:linear-gradient(180deg,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.3) 30%,rgba(0,0,0,0) 55%);}
+.card .title{position:absolute;bottom:40px;left:8px;right:50px;font-size:12px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.6);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card.tiktok .title{bottom:auto;top:12px;-webkit-line-clamp:3;font-size:14px;font-weight:700;}
 .card .fav-btn{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;color:#fff;cursor:pointer;z-index:5;}
 .card .badge{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:100px;font-size:11px;color:#fff;z-index:3;}
@@ -77,7 +77,7 @@ body.light-theme{--bg:#F5F3EE;--surface:#FFFFFF;--surface-2:#E8E8ED;--text:#0D0D
 <main id="main"></main>
 <div class="modal" id="addModal"><div class="modal-content"><button class="modal-close" id="addClose">▽</button><h3>動画を追加</h3><input type="text" id="urlInput" placeholder="URL"><input type="text" id="titleInput" placeholder="タイトル"><div class="modal-actions"><button class="btn-cancel" id="addCancel">キャンセル</button><button class="btn-save" id="addSave">保存</button></div></div></div>
 <div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>削除</h3><div class="modal-actions"><button class="btn-cancel" id="deleteCancel">キャンセル</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div></div></div>
-<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.1 | REEL-MINI 2024</p></div></div></div>
+<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.2 | REEL-MINI 2024</p></div></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
 <div style="width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
@@ -267,9 +267,16 @@ function renderCard(item){
     c.appendChild(img);
   }
 
+  const platformStyle={
+    youtube:{c1:'#FF3B30',c2:'#B8241C',icon:'▶'},
+    tiktok:{c1:'#25F4EE',c2:'#0FA39E',icon:'♪'},
+    instagram:{c1:'#E1306C',c2:'#833AB4',icon:'◎'},
+    other:{c1:'#8C8C92',c2:'#55555A',icon:'🔗'}
+  }[item.platform];
+
   const bg=document.createElement('div');
-  bg.style.cssText=`position:absolute;inset:0;background-color:${item.platform==='youtube'?'#FF3B30':item.platform==='tiktok'?'#25F4EE':item.platform==='instagram'?'#E1306C':'#8C8C92'};display:${item.thumb?'none':'flex'};align-items:center;justify-content:center;font-size:36px;color:rgba(255,255,255,0.2);`;
-  bg.textContent=item.platform[0].toUpperCase();
+  bg.style.cssText=`position:absolute;inset:0;background:linear-gradient(135deg,${platformStyle.c1} 0%,${platformStyle.c2} 100%);display:${item.thumb?'none':'flex'};align-items:center;justify-content:center;font-size:44px;color:rgba(255,255,255,0.35);`;
+  bg.textContent=platformStyle.icon;
   c.appendChild(bg);
 
   const grad=document.createElement('div');
