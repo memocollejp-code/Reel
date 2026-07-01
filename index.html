@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>REEL-MINI</title>
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#FF8F3F">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <style>
 :root{--bg:#0D0D0F;--surface:#18181B;--surface-2:#222226;--accent:#FF8F3F;--danger:#FF5C5C;--text:#F5F3EE;--muted:#8C8C92;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -75,8 +77,13 @@ body.light-theme{--bg:#F5F3EE;--surface:#FFFFFF;--surface-2:#E8E8ED;--text:#0D0D
 <main id="main"></main>
 <div class="modal" id="addModal"><div class="modal-content"><button class="modal-close" id="addClose">▽</button><h3>動画を追加</h3><input type="text" id="urlInput" placeholder="URL"><input type="text" id="titleInput" placeholder="タイトル"><div class="modal-actions"><button class="btn-cancel" id="addCancel">キャンセル</button><button class="btn-save" id="addSave">保存</button></div></div></div>
 <div class="modal" id="deleteModal"><div class="modal-content"><button class="modal-close" id="deleteClose">▽</button><h3>削除</h3><div class="modal-actions"><button class="btn-cancel" id="deleteCancel">キャンセル</button><button class="btn-save" style="background:var(--danger);" id="deleteConfirm">削除</button></div></div></div>
-<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.0 | REEL-MINI 2024</p></div></div></div>
+<div class="settings-overlay" id="settingsOverlay"><div class="settings-panel"><button class="modal-close" id="settingsClose">▽</button><h2 style="margin:0 0 20px;font-size:18px;">設定</h2><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">データ</h3><div class="settings-buttons"><button class="settings-btn" id="exportBtn">📥 エクスポート</button><button class="settings-btn" id="importBtn">📤 インポート</button></div><input type="file" id="restoreFile" accept=".json" style="display:none;"></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">テーマ</h3><div class="settings-buttons"><button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button><button class="settings-btn" id="lightThemeBtn">☀️ ライト</button></div></div><div class="settings-group"><h3 style="font-size:13px;font-weight:700;margin:0 0 12px;text-transform:uppercase;">危険ゾーン</h3><button class="settings-btn danger" id="deleteAllBtn">すべて削除</button></div><div style="text-align:center;color:var(--muted);font-size:12px;margin-top:20px;"><p>v3.1 | REEL-MINI 2024</p></div></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
+<div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+<div style="width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+<p style="color:var(--muted);font-size:13px;">保存しています...</p>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg);}}#loading.show{display:flex;}</style>
 <button class="add-btn" id="settingsBtn" style="position:fixed;bottom:20px;right:20px;background:var(--surface-2);">⚙️</button>
 <script>
 let items=[],currentFolder='youtube',selectedId=null,currentDeletedId=null,deletedStateMap={},undoTimeoutId=null;
@@ -175,14 +182,13 @@ function cleanupStaleDeletedEntries(){
   });
 }
 
-function saveVideo(){
-  const url=document.getElementById('urlInput').value.trim(),
-        title=document.getElementById('titleInput').value.trim();
-  if(!url){ui.toast('URLを入力してください');return}
-  try{new URL(url)}catch(e){ui.toast('有効なURLを入力してください');return}
+// 共有機能・手動追加フォームの両方から呼ばれる共通保存処理
+function addItem(url,title){
+  if(!url){ui.toast('URLを入力してください');return false}
+  try{new URL(url)}catch(e){ui.toast('有効なURLを入力してください');return false}
 
   const platform=detectPlatform(url);
-  if(isDuplicate(url,platform)){ui.toast('この動画は既に保存されています');return}
+  if(isDuplicate(url,platform)){ui.toast('この動画は既に保存されています');return false}
 
   let thumb=null;
   if(platform==='youtube'){
@@ -203,8 +209,47 @@ function saveVideo(){
     if(t.dataset.folder===platform)t.classList.add('active');
   });
   render();
-  ui.closeModal('addModal');
-  ui.toast('保存しました');
+  return true;
+}
+
+function saveVideo(){
+  const url=document.getElementById('urlInput').value.trim(),
+        title=document.getElementById('titleInput').value.trim();
+  const ok=addItem(url,title);
+  if(ok){
+    ui.closeModal('addModal');
+    ui.toast('保存しました');
+  }
+}
+
+// Web Share Target APIからの起動時、URLパラメータを読み取って自動保存する
+function handleShareTarget(){
+  const params=new URLSearchParams(window.location.search);
+  const hadParams=!!window.location.search;
+  let sharedUrl=(params.get('url')||'').trim();
+  const sharedTitle=(params.get('title')||'').trim();
+  const sharedText=(params.get('text')||'').trim();
+
+  // 一部アプリはURLをtextパラメータに埋め込んで渡してくるため、そこからも抽出する
+  if(!sharedUrl&&sharedText){
+    const match=sharedText.match(/https?:\/\/[^\s]+/);
+    if(match)sharedUrl=match[0];
+  }
+
+  if(sharedUrl){
+    const loading=document.getElementById('loading');
+    if(loading)loading.classList.add('show');
+    const ok=addItem(sharedUrl,sharedTitle);
+    if(loading)loading.classList.remove('show');
+    if(ok){
+      ui.toast('共有された動画を保存しました');
+    }
+  }
+
+  // URLパラメータをクリアし、リロード時の誤動作を防ぐ
+  if(hadParams){
+    history.replaceState({},document.title,window.location.pathname);
+  }
 }
 
 function renderCard(item){
@@ -451,6 +496,15 @@ if(history.length===1)window.history.pushState({page:'main'},null);
 db.theme();
 db.load();
 render();
+handleShareTarget();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg)=>console.log('Service Worker registered:',reg.scope))
+      .catch((err)=>console.error('Service Worker registration failed:',err));
+  });
+}
 </script>
 </body>
 </html>

@@ -1,5 +1,4 @@
-const CACHE_VERSION = '1782881678';
-const CACHE_NAME = 'reel-mini-cache-' + CACHE_VERSION;
+const CACHE_NAME = 'reel-mini-cache-v1';
 const CACHE_URLS = [
   './index.html',
   './manifest.json',
