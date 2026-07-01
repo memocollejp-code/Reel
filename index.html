@@ -60,14 +60,31 @@
   .logo .dot{color:var(--accent);}
 
   .add-btn{
-    width:42px; height:42px; border-radius:50%;
+    width:44px; height:44px; border-radius:50%;
     background:var(--accent); color:#16100A;
     border:none; font-size:24px; font-weight:700;
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 0 0 4px rgba(255,143,63,0.12);
-    transition:transform .15s ease;
+    transition:transform .15s ease; cursor:pointer;
   }
   .add-btn:active{transform:scale(0.9);}
+
+  /* フォルダタブUIの追加 */
+  .folder-tabs{
+    display:flex; gap:8px; padding:12px 14px 0; overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .folder-tab{
+    flex:0 0 auto; padding:10px 14px; border-radius:20px;
+    background:var(--surface-2); border:none; color:var(--muted);
+    font-size:14px; font-weight:600; font-family:inherit;
+    transition:all .2s ease; white-space:nowrap; cursor:pointer;
+    min-height:44px; display:flex; align-items:center;
+  }
+  .folder-tab.active{
+    background:var(--accent); color:#16100A;
+  }
+  .folder-tab:active{transform:scale(0.98);}
 
   main{
     flex:1; overflow-y:auto;
@@ -78,12 +95,18 @@
     display:grid; grid-template-columns:1fr 1fr; gap:10px;
   }
 
+  /* ー 動画カード：プラットフォーム別アスペクト比 ー */
   .card{
     position:relative; border-radius:14px; overflow:hidden;
-    background:var(--surface); aspect-ratio:9/14;
+    background:var(--surface);
     box-shadow:0 4px 14px rgba(0,0,0,0.35);
     transition:transform .12s ease;
   }
+  .card.youtube{aspect-ratio:16/9;}
+  .card.tiktok{aspect-ratio:9/16;}
+  .card.instagram{aspect-ratio:1/1;}
+  .card.other{aspect-ratio:9/14;}
+
   .card.pressing{transform:scale(0.96);}
   .card img{
     width:100%; height:100%; object-fit:cover; display:block;
@@ -101,10 +124,34 @@
   }
   .card .badge .dot{width:7px; height:7px; border-radius:50%;}
   .card .badge span{font-size:11px; font-weight:600; color:#fff; letter-spacing:0.02em;}
+  
+  /* タイトル表示：ティックトックはオーバーレイで明示 */
   .card .title{
     position:absolute; right:8px; left:8px; bottom:30px;
     font-size:12px; color:rgba(255,255,255,0.85); line-height:1.3;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .card.tiktok .title{
+    position:absolute; inset:8px; bottom:auto;
+    font-size:13px; font-weight:600; color:rgba(255,255,255,0.95);
+    background:linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+    padding:10px 8px 20px; display:-webkit-box; -webkit-line-clamp:3;
+    -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  /* お気に入りボタン */
+  .fav-btn{
+    position:absolute; top:8px; right:8px;
+    width:44px; height:44px; border-radius:50%;
+    background:rgba(0,0,0,0.45); border:none;
+    color:#fff; font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(6px); cursor:pointer;
+    transition:all .2s ease; z-index:5;
+  }
+  .fav-btn:active{transform:scale(0.9);}
+  .fav-btn.favorited{
+    background:var(--accent); color:#16100A;
   }
 
   .empty{
@@ -123,7 +170,7 @@
   .demo-btn{
     width:100%; padding:13px; border-radius:14px; border:1px dashed var(--accent-dim);
     background:rgba(255,143,63,0.06); color:var(--accent);
-    font-size:13px; font-weight:600; font-family:inherit;
+    font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;
   }
   .demo-btn:active{background:rgba(255,143,63,0.14);}
 
@@ -169,7 +216,8 @@
   .sheet-item{
     padding:16px; text-align:center; font-size:16px; font-weight:600;
     border-bottom:1px solid rgba(255,255,255,0.06); background:none; border-left:none; border-right:none; border-top:none;
-    width:100%; color:var(--text); font-family:inherit;
+    width:100%; color:var(--text); font-family:inherit; cursor:pointer;
+    min-height:44px; display:flex; align-items:center; justify-content:center;
   }
   .sheet-item:last-child{border-bottom:none;}
   .sheet-item.danger{color:var(--danger);}
@@ -188,7 +236,17 @@
     transform:translateY(100%); transition:transform .25s cubic-bezier(.2,.9,.3,1);
   }
   .modal-backdrop.show .modal{transform:translateY(0);}
-  .modal h3{margin:0 0 14px; font-size:17px;}
+  .modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .modal h3{margin:0; font-size:17px; font-weight:700;}
+  .modal-close-btn{
+    width:44px; height:44px; border:none; background:var(--surface-2);
+    border-radius:50%; color:var(--text); font-size:20px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .modal-close-btn:active{transform:scale(0.9);}
   .modal input{
     width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--surface-2);
     background:var(--bg); color:var(--text); font-size:14px; margin-bottom:12px;
@@ -211,6 +269,7 @@
   .modal-actions{display:flex; gap:8px;}
   .modal-actions button{
     flex:1; padding:13px; border-radius:12px; border:none; font-size:14px; font-weight:700; font-family:inherit;
+    cursor:pointer; min-height:44px;
   }
   .btn-cancel{background:var(--surface-2); color:var(--text);}
   .btn-save{background:var(--accent); color:#16100A;}
@@ -229,752 +288,618 @@
     max-height:80dvh; overflow-y:auto;
   }
   .settings-overlay.show .settings-panel{transform:translateY(0);}
-  .settings-panel h2{margin:0 0 20px; font-size:18px; font-weight:700;}
+  .settings-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .settings-panel h2{margin:0; font-size:18px; font-weight:700;}
+  .settings-close-btn{
+    width:44px; height:44px; border:none; background:var(--surface-2);
+    border-radius:50%; color:var(--text); font-size:20px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .settings-close-btn:active{transform:scale(0.9);}
   .settings-group{margin-bottom:20px; border-top:1px solid var(--surface-2); padding-top:16px;}
   .settings-group:first-of-type{border-top:none; padding-top:0;}
-  .settings-group h3{margin:0 0 12px; font-size:14px; font-weight:600; color:var(--muted);}
-  .settings-item{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:12px 0; gap:12px;
-  }
-  .settings-item-label{flex:1; font-size:15px;}
-  .settings-btn{
-    flex:1; padding:13px; border-radius:12px; border:none; font-size:14px; font-weight:700;
-    font-family:inherit; transition:background .15s ease; cursor:pointer;
-  }
-  .settings-btn.primary{background:var(--accent); color:#16100A;}
-  .settings-btn.primary:active{background:rgba(255,143,63,0.8);}
-  .settings-btn.secondary{background:var(--surface-2); color:var(--text);}
-  .settings-btn.secondary:active{background:rgba(34,34,38,0.8);}
-  .settings-btn.danger{background:rgba(255,92,92,0.1); color:var(--danger);}
-  .settings-btn.danger:active{background:rgba(255,92,92,0.2);}
-  .theme-toggle{
-    display:flex; gap:8px;
-  }
-  .theme-btn{
-    flex:1; padding:10px; border-radius:10px; border:1px solid var(--surface-2);
-    background:var(--surface-2); color:var(--text); font-size:13px; font-weight:600;
-    transition:all .15s ease; cursor:pointer;
-  }
-  .theme-btn.active{background:var(--accent); color:#16100A; border-color:var(--accent);}
-  .settings-close-btn{
-    width:100%; padding:13px; border-radius:12px; border:none;
-    background:var(--surface-2); color:var(--text); font-size:14px; font-weight:700;
-    font-family:inherit; margin-top:12px; cursor:pointer;
+
+  .settings-group h3{
+    font-size:13px; font-weight:700; color:var(--muted); margin:0 0 12px; text-transform:uppercase; letter-spacing:0.05em;
   }
 
-  /* 確認ダイアログ */
+  .settings-buttons{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+
+  .settings-btn{
+    padding:12px; border-radius:12px; border:1px solid var(--surface-2);
+    background:var(--surface); color:var(--text);
+    font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;
+    min-height:44px; display:flex; align-items:center; justify-content:center;
+  }
+
+  .settings-btn.active{
+    background:var(--accent); color:#16100A; border-color:var(--accent);
+  }
+
+  .settings-btn.danger{
+    grid-column:1 / -1; background:rgba(255,92,92,0.1); border-color:var(--danger); color:var(--danger);
+  }
+
   .confirm-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:80;
-    display:flex; align-items:center; justify-content:center;
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:80;
     opacity:0; pointer-events:none; transition:opacity .2s ease;
+    display:flex; align-items:center; justify-content:center;
   }
   .confirm-overlay.show{opacity:1; pointer-events:all;}
   .confirm-dialog{
-    background:var(--surface); border-radius:16px; padding:22px;
-    max-width:280px; text-align:center;
+    background:var(--surface); border-radius:20px; padding:24px;
+    width:85%; max-width:320px;
+    transform:scale(0.9); transition:transform .25s cubic-bezier(.2,.9,.3,1);
   }
-  .confirm-dialog h3{margin:0 0 10px; font-size:16px; font-weight:700;}
+  .confirm-overlay.show .confirm-dialog{transform:scale(1);}
+  .confirm-dialog h3{margin:0 0 10px; font-size:17px; font-weight:700;}
   .confirm-dialog p{margin:0 0 20px; font-size:14px; color:var(--muted); line-height:1.5;}
-  .confirm-actions{display:flex; gap:8px;}
+  .confirm-actions{display:flex; gap:10px;}
   .confirm-actions button{
-    flex:1; padding:12px; border-radius:10px; border:none; font-size:13px; font-weight:700;
-    font-family:inherit; cursor:pointer;
+    flex:1; padding:12px; border-radius:12px; border:none;
+    font-size:14px; font-weight:700; font-family:inherit; cursor:pointer;
+    min-height:44px;
   }
-  .btn-confirm-cancel{background:var(--surface-2); color:var(--text);}
-  .btn-confirm-delete{background:var(--danger); color:#fff;}
+  .confirm-cancel{background:var(--surface-2); color:var(--text);}
+  .confirm-delete{background:var(--danger); color:#fff;}
 
-  /* テーマ切り替え */
-  html.light-mode{
+  /* light theme */
+  body.light-theme{
     --bg:#F5F3EE;
     --surface:#FFFFFF;
-    --surface-2:#F0EEEA;
-    --text:#1A1917;
-    --muted:#7F7D7A;
-    --accent-dim:#FFE5D0;
+    --surface-2:#E8E8ED;
+    --text:#0D0D0F;
+    --muted:#8C8C92;
+    --accent-dim:rgba(255,143,63,0.1);
   }
-
-  .settings-btn:disabled{opacity:0.5; cursor:not-allowed;}
 </style>
 </head>
 <body>
+<div class="sprockets">
+  <span></span><span></span><span></span><span></span>
+</div>
 
-  <div class="sprockets" id="sprockets"></div>
+<header>
+  <div class="logo">REEL<span class="dot">.</span>MINI</div>
+  <button class="add-btn" id="addBtn" title="動画を追加">+</button>
+</header>
 
-  <header>
-    <div class="logo">REEL<span class="dot">.</span></div>
-    <div style="display:flex; gap:8px;">
-      <button class="add-btn" id="addBtn" aria-label="動画を手動で追加">＋</button>
-      <button class="add-btn" id="settingsBtn" aria-label="設定を開く" style="background:var(--surface-2); font-size:18px;">⚙</button>
+<!-- フォルダタブUI -->
+<div class="folder-tabs" id="folderTabs">
+  <button class="folder-tab active" data-folder="youtube" title="YouTube">YouTube</button>
+  <button class="folder-tab" data-folder="tiktok" title="ティックトック">ティックトック</button>
+  <button class="folder-tab" data-folder="instagram" title="インスタグラム">インスタグラム</button>
+  <button class="folder-tab" data-folder="other" title="その他">その他</button>
+</div>
+
+<main id="main"></main>
+
+<!-- 動画追加モーダル -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>動画を追加</h3>
+      <button class="modal-close-btn" id="modalCloseBtn" title="閉じる">▽</button>
     </div>
-  </header>
-
-  <main id="main">
-    <div class="grid" id="grid"></div>
-    <div class="empty" id="emptyState" style="display:none;">
-      <div class="glyph">🎞️</div>
-      <h3>まだ動画がありません</h3>
-      <p>YouTubeやTikTokの共有メニューから<br>「REEL-MINI」を選ぶだけで保存されます。</p>
+    <input type="text" id="urlInput" placeholder="YouTube, TikTok, InstagramのURLを入力" autocomplete="off">
+    <input type="text" id="titleInput" placeholder="タイトル（省略可）" autocomplete="off">
+    <div class="url-preview" id="urlPreview" style="display:none;">
+      <img id="previewThumb" src="" alt="">
+      <span><div class="platform-dot" id="platformDot"></div><span id="platformName"></span></span>
     </div>
-  </main>
-
-  <div class="demo-bar">
-    <button class="demo-btn" id="simulateShare">共有から保存をシミュレート ▶</button>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancelBtn">キャンセル</button>
+      <button class="btn-save" id="modalSaveBtn">保存</button>
+    </div>
   </div>
+</div>
 
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <p>保存しています…</p>
-  </div>
-
-  <div class="toast" id="toast"><span class="ok-dot"></span><span id="toastText">保存しました！</span></div>
-
-  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+<!-- 長押し削除用アクションシート -->
+<div class="sheet-backdrop" id="sheetBackdrop">
   <div class="sheet" id="sheet">
     <div class="sheet-group">
-      <div style="padding:10px 16px; font-size:12px; color:var(--muted);" id="sheetTitle">この動画を削除しますか？</div>
-      <button class="sheet-item danger" id="confirmDelete">削除する</button>
+      <button class="sheet-item danger" id="deleteBtn">削除</button>
     </div>
     <div class="sheet-group">
-      <button class="sheet-item cancel" id="cancelSheet">キャンセル</button>
+      <button class="sheet-item cancel" id="cancelBtn">キャンセル</button>
     </div>
   </div>
+</div>
 
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-      <h3>動画を追加</h3>
-      <input type="url" id="urlInput" placeholder="YouTubeのURLを貼り付け">
-      <div class="url-preview" id="urlPreview" style="display:none;">
-        <img id="urlPreviewThumb" alt="">
-        <span id="urlPreviewLabel"></span>
-      </div>
-      <input type="text" id="titleInput" placeholder="タイトル（省略可）">
-      <div class="modal-actions">
-        <button class="btn-cancel" id="cancelModal">キャンセル</button>
-        <button class="btn-save" id="saveModal">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 設定画面 -->
-  <div class="settings-overlay" id="settingsOverlay">
-    <div class="settings-panel">
+<!-- 設定画面 -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <div class="settings-header">
       <h2>設定</h2>
-
-      <!-- バックアップ -->
-      <div class="settings-group">
-        <h3>1. バックアップ</h3>
-        <button class="settings-btn primary" id="backupBtn">📥 データをエクスポート</button>
-      </div>
-
-      <!-- 復元 -->
-      <div class="settings-group">
-        <h3>2. 復元</h3>
-        <input type="file" id="restoreFile" accept=".json" style="display:none;">
-        <button class="settings-btn primary" id="restoreBtn">📤 バックアップから復元</button>
-      </div>
-
-      <!-- テーマ切り替え -->
-      <div class="settings-group">
-        <h3>3. テーマ</h3>
-        <div class="theme-toggle">
-          <button class="theme-btn active" id="darkThemeBtn">🌙 ダーク</button>
-          <button class="theme-btn" id="lightThemeBtn">☀️ ライト</button>
-        </div>
-      </div>
-
-      <!-- データ全消去 -->
-      <div class="settings-group">
-        <h3>4. データ管理</h3>
-        <button class="settings-btn danger" id="deleteAllBtn">🗑️ すべてのデータを削除</button>
-      </div>
-
-      <button class="settings-close-btn" id="settingsCloseBtn">閉じる</button>
+      <button class="settings-close-btn" id="settingsCloseBtn" title="閉じる">▽</button>
     </div>
-  </div>
 
-  <!-- 確認ダイアログ -->
-  <div class="confirm-overlay" id="confirmOverlay">
-    <div class="confirm-dialog">
-      <h3 id="confirmTitle">確認</h3>
-      <p id="confirmMessage">本当にすべてのデータを削除しますか？</p>
-      <div class="confirm-actions">
-        <button class="btn-confirm-cancel" id="confirmCancel">キャンセル</button>
-        <button class="btn-confirm-delete" id="confirmDelete">削除</button>
+    <!-- バックアップ・復元 -->
+    <div class="settings-group">
+      <h3>データ管理</h3>
+      <div class="settings-buttons">
+        <button class="settings-btn" id="backupBtn">📥 バックアップ</button>
+        <button class="settings-btn" id="restoreBtn">📤 復元</button>
+      </div>
+      <input type="file" id="restoreFile" accept=".json" style="display:none;">
+    </div>
+
+    <!-- テーマ切り替え -->
+    <div class="settings-group">
+      <h3>テーマ</h3>
+      <div class="settings-buttons">
+        <button class="settings-btn active" id="darkThemeBtn">🌙 ダーク</button>
+        <button class="settings-btn" id="lightThemeBtn">☀️ ライト</button>
       </div>
     </div>
+
+    <!-- 危険ゾーン -->
+    <div class="settings-group">
+      <h3>危険ゾーン</h3>
+      <button class="settings-btn danger" id="deleteAllBtn">すべてのデータを削除</button>
+    </div>
+
+    <div class="settings-group" style="text-align:center; color:var(--muted); font-size:12px;">
+      <p>v2.0 | REEL-MINI © 2024</p>
+    </div>
   </div>
+</div>
+
+<!-- 確認ダイアログ -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-dialog">
+    <h3 id="confirmTitle">確認</h3>
+    <p id="confirmMessage">本当に削除しますか？</p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" id="confirmCancel">キャンセル</button>
+      <button class="confirm-delete" id="confirmDelete">削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト通知 -->
+<div class="toast" id="toast">
+  <div class="ok-dot"></div>
+  <span id="toastText">保存しました</span>
+</div>
+
+<!-- ローディングオーバーレイ -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p>処理中...</p>
+</div>
+
+<!-- 設定ボタン（右下） -->
+<button class="add-btn" id="settingsBtn" style="position:fixed; bottom:20px; right:20px; z-index:15; background:var(--surface-2);" title="設定">⚙️</button>
 
 <script>
+  'use strict';
+
   // ========================================
-  // ステップ2修正版 セキュリティ・機能完全実装
+  // グローバル状態管理
   // ========================================
 
-  // ---- プラットフォームメタデータ ----
-  const PLATFORM_META = {
-    youtube:  { label: 'YouTube',   color: 'var(--yt)' },
-    tiktok:   { label: 'TikTok',    color: 'var(--tt)' },
-    instagram:{ label: 'Instagram', color: 'var(--ig)' },
-  };
-
-  // ---- LocalStorage キー ----
-  const STORAGE_KEY = 'reel-mini-items';
-
-  // ---- 初期デモデータ（LocalStorage空の場合のみ使用） ----
-  const DEMO_DATA = [
-    { id:'1', url:'https://youtube.com/watch?v=demo1', platform:'youtube', title:'渋谷で見つけた絶品ラーメン店巡り', thumb:'https://img.youtube.com/vi/demo1/hqdefault.jpg', created_at: Date.now()-1000*60*30 },
-    { id:'2', url:'https://tiktok.com/@demo/video/2', platform:'tiktok', title:'3分でできる時短レシピ', thumb:'https://picsum.photos/seed/reel2/400/620', created_at: Date.now()-1000*60*60*3 },
-    { id:'3', url:'https://instagram.com/reel/demo3', platform:'instagram', title:'初夏の鎌倉さんぽ', thumb:'https://picsum.photos/seed/reel3/400/620', created_at: Date.now()-1000*60*60*9 },
-    { id:'4', url:'https://youtube.com/watch?v=demo4', platform:'youtube', title:'AI開発、非エンジニアでもここまでできた話', thumb:'https://img.youtube.com/vi/demo4/hqdefault.jpg', created_at: Date.now()-1000*60*60*26 },
-  ];
-
-  // ---- グローバル状態 ----
   let items = [];
-  const grid = document.getElementById('grid');
-  const emptyState = document.getElementById('emptyState');
-  let pendingDeleteId = null;
-  let pressTimer = null;
-  let touchStartX = 0;
-  let touchStartY = 0;
+  let currentFolder = 'youtube'; // 現在選択中のフォルダ
 
   // ========================================
-  // 1. LocalStorage 永続化機構
+  // ローカルストレージ操作
   // ========================================
-
-  function loadFromStorage(){
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if(stored) {
-        items = JSON.parse(stored);
-      } else {
-        items = JSON.parse(JSON.stringify(DEMO_DATA));
-        saveToStorage();
-      }
-    } catch(e) {
-      console.error('LocalStorage読み込みエラー:', e);
-      items = JSON.parse(JSON.stringify(DEMO_DATA));
-    }
-  }
 
   function saveToStorage(){
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch(e) {
-      console.error('LocalStorage保存エラー:', e);
+    localStorage.setItem('reelMiniItems', JSON.stringify(items));
+  }
+
+  function loadFromStorage(){
+    const stored = localStorage.getItem('reelMiniItems');
+    if(stored){
+      try {
+        items = JSON.parse(stored);
+      } catch(e) {
+        console.error('データ読み込みエラー:', e);
+        items = [];
+      }
     }
   }
 
+  function saveTheme(theme){
+    localStorage.setItem('reelMiniTheme', theme);
+  }
+
+  function loadTheme(){
+    const theme = localStorage.getItem('reelMiniTheme') || 'dark';
+    applyTheme(theme);
+  }
+
+  function applyTheme(theme){
+    if(theme === 'light'){
+      document.body.classList.add('light-theme');
+      document.getElementById('darkThemeBtn').classList.remove('active');
+      document.getElementById('lightThemeBtn').classList.add('active');
+    } else {
+      document.body.classList.remove('light-theme');
+      document.getElementById('darkThemeBtn').classList.add('active');
+      document.getElementById('lightThemeBtn').classList.remove('active');
+    }
+    saveTheme(theme);
+  }
+
   // ========================================
-  // 2. XSS脆弱性排除 - 安全なDOM生成
+  // トースト通知
   // ========================================
 
-  function escapeHTML(text) {
+  function showToast(message){
+    const toast = document.getElementById('toast');
+    document.getElementById('toastText').textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2000);
+  }
+
+  // ========================================
+  // プラットフォーム判定とアスペクト比
+  // ========================================
+
+  function detectPlatform(url){
+    url = url.toLowerCase();
+    if(url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+    if(url.includes('tiktok.com') || url.includes('vm.tiktok.com')) return 'tiktok';
+    if(url.includes('instagram.com') || url.includes('instagr.am')) return 'instagram';
+    return 'other';
+  }
+
+  function getPlatformColor(platform){
+    const colors = {youtube: '#FF3B30', tiktok: '#25F4EE', instagram: '#E1306C', other: '#8C8C92'};
+    return colors[platform] || colors.other;
+  }
+
+  function getPlatformLabel(platform){
+    const labels = {youtube: 'YouTube', tiktok: 'TikTok', instagram: 'Instagram', other: 'その他'};
+    return labels[platform] || labels.other;
+  }
+
+  // ========================================
+  // サムネイル生成（OpenGraph）
+  // ========================================
+
+  async function generateThumbnail(url, platform){
+    return new Promise((resolve) => {
+      // 簡易版：URLの形式からデータURIで背景を作成
+      const oGraphUrl = `https://api.og-reader.com/api/read?url=${encodeURIComponent(url)}`;
+
+      // タイムアウト付きfetch
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      fetch(oGraphUrl, {signal: controller.signal})
+        .then(r => r.json())
+        .then(data => {
+          clearTimeout(timeout);
+          if(data.image && data.image.url){
+            resolve(data.image.url);
+          } else {
+            resolve(createDefaultThumbnail(platform));
+          }
+        })
+        .catch(() => {
+          clearTimeout(timeout);
+          resolve(createDefaultThumbnail(platform));
+        });
+    });
+  }
+
+  function createDefaultThumbnail(platform){
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 180;
+    const ctx = canvas.getContext('2d');
+
+    const colors = {youtube: '#FF3B30', tiktok: '#25F4EE', instagram: '#E1306C', other: '#8C8C92'};
+    const color = colors[platform] || colors.other;
+
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(getPlatformLabel(platform), canvas.width / 2, canvas.height / 2);
+
+    return canvas.toDataURL();
+  }
+
+  // ========================================
+  // カード生成（XSS対策）
+  // ========================================
+
+  function safeText(str){
+    if(!str) return '';
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = str;
     return div.innerHTML;
   }
 
-  function safeCreateCard(item) {
-    const meta = PLATFORM_META[item.platform];
+  function safeCreateCard(item){
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = `card ${item.platform}`;
+    card.dataset.id = item.id;
 
-    // img要素を安全に生成
+    // 画像
     const img = document.createElement('img');
-    img.src = item.thumb;
-    img.alt = item.title;
-    img.loading = 'lazy';
+    img.src = item.thumb || createDefaultThumbnail(item.platform);
+    img.alt = item.title || 'thumbnail';
+    card.appendChild(img);
 
-    // グラデーションdiv
+    // グラデーション
     const grad = document.createElement('div');
     grad.className = 'grad';
+    card.appendChild(grad);
 
-    // タイトルテキスト（XSS対策：textContent使用）
-    const titleEl = document.createElement('div');
-    titleEl.className = 'title';
-    titleEl.textContent = item.title;
+    // お気に入りボタン
+    const favBtn = document.createElement('button');
+    favBtn.className = `fav-btn ${item.favorite ? 'favorited' : ''}`;
+    favBtn.innerHTML = item.favorite ? '★' : '☆';
+    favBtn.title = item.favorite ? 'お気に入り解除' : 'お気に入り';
+    favBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavorite(item.id);
+    });
+    card.appendChild(favBtn);
 
-    // バッジ要素（innerHTML不使用）
+    // バッジ
     const badge = document.createElement('div');
     badge.className = 'badge';
-    
-    const dot = document.createElement('span');
+    const dot = document.createElement('div');
     dot.className = 'dot';
-    dot.style.background = meta.color;
-
-    const label = document.createElement('span');
-    label.textContent = meta.label;
-
+    dot.style.backgroundColor = getPlatformColor(item.platform);
+    const span = document.createElement('span');
+    span.textContent = getPlatformLabel(item.platform);
     badge.appendChild(dot);
-    badge.appendChild(label);
-
-    // DOMに追加
-    card.appendChild(img);
-    card.appendChild(grad);
-    card.appendChild(titleEl);
+    badge.appendChild(span);
     card.appendChild(badge);
+
+    // タイトル
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.textContent = item.title || '(タイトルなし)';
+    card.appendChild(title);
+
+    // イベントリスナー：長押しで削除メニュー
+    let pressTimer = null;
+    card.addEventListener('pointerdown', () => {
+      pressTimer = setTimeout(() => {
+        openSheet(item.id);
+        pressTimer = null;
+      }, 500);
+    });
+    card.addEventListener('pointerup', () => {
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    });
+    card.addEventListener('pointercancel', () => {
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    });
+
+    // 圧縮フィードバック
+    card.addEventListener('pointerdown', () => {
+      card.classList.add('pressing');
+    });
+    card.addEventListener('pointerup', () => {
+      card.classList.remove('pressing');
+    });
+    card.addEventListener('pointercancel', () => {
+      card.classList.remove('pressing');
+    });
 
     return card;
   }
 
   // ========================================
-  // 3. レンダリング（破壊的ソート修正）
+  // お気に入り機能
+  // ========================================
+
+  function toggleFavorite(id){
+    const item = items.find(i => i.id === id);
+    if(item){
+      item.favorite = !item.favorite;
+      saveToStorage();
+      render();
+      showToast(item.favorite ? 'お気に入りに追加しました' : 'お気に入りから削除しました');
+    }
+  }
+
+  // ========================================
+  // レンダリング（フォルダ別・ソート付き）
   // ========================================
 
   function render(){
-    grid.innerHTML = '';
+    const main = document.getElementById('main');
+    main.innerHTML = '';
 
-    if(items.length === 0){
-      emptyState.style.display = 'block';
-      return;
-    }
+    // 現在のフォルダのアイテムをフィルタリング
+    const folderItems = items.filter(i => i.platform === currentFolder);
 
-    emptyState.style.display = 'none';
-
-    // 【修正】スプレッド演算子でコピーしてソート（元の配列を破壊しない）
-    const sorted = [...items].sort((a, b) => b.created_at - a.created_at);
-
-    sorted.forEach(item => {
-      const card = safeCreateCard(item);
-
-      card.addEventListener('click', () => {
-        if(card.classList.contains('suppress-click')) return;
-        window.open(item.url, '_blank');
-      });
-
-      bindLongPress(card, item.id, item.title);
-      grid.appendChild(card);
+    // ソート：お気に入り（新しい順）→ 通常（新しい順）
+    folderItems.sort((a, b) => {
+      if(a.favorite !== b.favorite){
+        return b.favorite - a.favorite; // お気に入りが上
+      }
+      return b.timestamp - a.timestamp; // 新しい順
     });
-  }
 
-  // ========================================
-  // 4. 長押し判定 - スクロール誤爆防止
-  // ========================================
-
-  function bindLongPress(el, id, title){
-    let touchMoved = false;
-    let moved = false;
-
-    const start = (e) => {
-      touchMoved = false;
-      moved = false;
-      touchStartX = e.touches ? e.touches[0].clientX : e.clientX;
-      touchStartY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      el.classList.add('pressing');
-
-      pressTimer = setTimeout(() => {
-        // スクロール判定：スクロール動作中なら長押しを発火しない
-        if(!touchMoved && !moved){
-          el.classList.add('suppress-click');
-          openSheet(id, title);
-          if(navigator.vibrate) navigator.vibrate(12);
-        }
-      }, 500);
-    };
-
-    const onMove = (e) => {
-      if(!touchStartX || !touchStartY) return;
-
-      const currentX = e.touches ? e.touches[0].clientX : e.clientX;
-      const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      // 【修正】指の移動距離を計算
-      const distX = Math.abs(currentX - touchStartX);
-      const distY = Math.abs(currentY - touchStartY);
-
-      // スクロール判定：上下移動が8px以上、または横移動があればスクロール中と判定
-      if(distY > 8 || distX > 5){
-        touchMoved = true;
-        // 長押しタイマーをキャンセル
-        if(pressTimer){
-          clearTimeout(pressTimer);
-          pressTimer = null;
-        }
-      }
-
-      moved = true;
-    };
-
-    const cancel = () => {
-      if(pressTimer) clearTimeout(pressTimer);
-      pressTimer = null;
-      el.classList.remove('pressing');
-      setTimeout(() => el.classList.remove('suppress-click'), 50);
-      touchStartX = 0;
-      touchStartY = 0;
-    };
-
-    el.addEventListener('touchstart', start, {passive: true});
-    el.addEventListener('touchmove', onMove, {passive: true});
-    el.addEventListener('touchend', cancel);
-    el.addEventListener('touchcancel', cancel);
-
-    el.addEventListener('mousedown', start);
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseup', cancel);
-    el.addEventListener('mouseleave', cancel);
-  }
-
-  // ========================================
-  // 5. YouTube動画ID抽出 - 正規表現実装
-  // ========================================
-
-  function extractYouTubeID(url) {
-    // 形式例：
-    // - https://www.youtube.com/watch?v=【ID】
-    // - https://youtu.be/【ID】
-    // - https://www.youtube.com/watch?v=【ID】&t=...
-    // - https://youtu.be/【ID】?t=...
-
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
-      /m\.youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
-    ];
-
-    for(let pattern of patterns) {
-      const match = url.match(pattern);
-      if(match && match[1]){
-        return match[1];
-      }
+    if(folderItems.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.innerHTML = `
+        <div class="glyph">📭</div>
+        <h3>まだ動画がありません</h3>
+        <p>${getPlatformLabel(currentFolder)}のURLを<br>追加してみてください</p>
+      `;
+      main.appendChild(empty);
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      folderItems.forEach(item => {
+        grid.appendChild(safeCreateCard(item));
+      });
+      main.appendChild(grid);
     }
-
-    return null;
-  }
-
-  function getYouTubeThumbnail(videoID) {
-    // YouTube公式サムネイル URL
-    return `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`;
   }
 
   // ========================================
-  // 6. タイトル自動生成（URL切り出し＆手動入力）
+  // フォルダタブ切り替え
   // ========================================
 
-  function generateTitleFromURL(url) {
-    // YouTube ID を抽出して、タイトルのプレースホルダーを生成
-    const videoID = extractYouTubeID(url);
-    if(videoID) {
-      return `YouTube動画 (ID: ${videoID.slice(0,5)}...)`;
-    }
-
-    // TikTok URL から ID を抽出
-    const tiktokMatch = url.match(/tiktok\.com\/@([a-zA-Z0-9_.-]+)\/video\/(\d+)/);
-    if(tiktokMatch) {
-      return `TikTok動画 (@${tiktokMatch[1]})`;
-    }
-
-    // Instagram Reel から ID を抽出
-    const instagramMatch = url.match(/instagram\.com\/reel\/([a-zA-Z0-9_-]+)/);
-    if(instagramMatch) {
-      return `Instagram Reel (${instagramMatch[1].slice(0,5)}...)`;
-    }
-
-    // フォールバック
-    return '新しく共有された動画';
-  }
-
-  // ========================================
-  // Sprocket strip 生成
-  // ========================================
-
-  const sprocketEl = document.getElementById('sprockets');
-  for(let i = 0; i < 24; i++){
-    const s = document.createElement('span');
-    sprocketEl.appendChild(s);
-  }
-
-  // ========================================
-  // Delete Sheet UI
-  // ========================================
-
-  const sheetBackdrop = document.getElementById('sheetBackdrop');
-  const sheet = document.getElementById('sheet');
-  const sheetTitle = document.getElementById('sheetTitle');
-
-  function openSheet(id, title){
-    pendingDeleteId = id;
-    // 【安全】textContent を使用してXSS防止
-    sheetTitle.textContent = title;
-    sheetBackdrop.classList.add('show');
-    sheet.classList.add('show');
-  }
-
-  function closeSheet(){
-    sheetBackdrop.classList.remove('show');
-    sheet.classList.remove('show');
-    pendingDeleteId = null;
-  }
-
-  document.getElementById('cancelSheet').addEventListener('click', closeSheet);
-  sheetBackdrop.addEventListener('click', closeSheet);
-  document.getElementById('confirmDelete').addEventListener('click', () => {
-    items = items.filter(i => i.id !== pendingDeleteId);
-    saveToStorage(); // 【修正】削除後に保存
-    render();
-    closeSheet();
-    showToast('削除しました');
+  document.querySelectorAll('.folder-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.folder-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFolder = tab.dataset.folder;
+      render();
+    });
   });
 
   // ========================================
-  // Add Modal UI（手動入力で URL ＆ タイトル）
+  // モーダル処理（動画追加）
   // ========================================
 
   const modalBackdrop = document.getElementById('modalBackdrop');
   const urlInput = document.getElementById('urlInput');
   const titleInput = document.getElementById('titleInput');
   const urlPreview = document.getElementById('urlPreview');
-  const urlPreviewThumb = document.getElementById('urlPreviewThumb');
-  const urlPreviewLabel = document.getElementById('urlPreviewLabel');
+  const previewThumb = document.getElementById('previewThumb');
+  const platformDot = document.getElementById('platformDot');
+  const platformName = document.getElementById('platformName');
 
   document.getElementById('addBtn').addEventListener('click', () => {
     urlInput.value = '';
     titleInput.value = '';
     urlPreview.style.display = 'none';
-    urlPreviewThumb.style.display = 'none';
     modalBackdrop.classList.add('show');
+    urlInput.focus();
   });
 
-  document.getElementById('cancelModal').addEventListener('click', () => {
+  document.getElementById('modalCloseBtn').addEventListener('click', () => {
     modalBackdrop.classList.remove('show');
+  });
+
+  document.getElementById('modalCancelBtn').addEventListener('click', () => {
+    modalBackdrop.classList.remove('show');
+  });
+
+  document.getElementById('modalSaveBtn').addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    const title = titleInput.value.trim();
+
+    if(!url){
+      showToast('URLを入力してください');
+      return;
+    }
+
+    // バリデーション：URLの形式確認
+    try {
+      new URL(url);
+    } catch(e) {
+      showToast('有効なURLを入力してください');
+      return;
+    }
+
+    const platform = detectPlatform(url);
+    const thumb = previewThumb.src || createDefaultThumbnail(platform);
+
+    const newItem = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      url: url,
+      platform: platform,
+      title: title || `動画 - ${getPlatformLabel(platform)}`,
+      thumb: thumb,
+      timestamp: Date.now(),
+      favorite: false,
+    };
+
+    items.push(newItem);
+    saveToStorage();
+    modalBackdrop.classList.remove('show');
+    
+    // 追加したアイテムのフォルダに自動切り替え
+    currentFolder = platform;
+    document.querySelectorAll('.folder-tab').forEach(t => {
+      t.classList.remove('active');
+      if(t.dataset.folder === platform) t.classList.add('active');
+    });
+
+    render();
+    showToast('動画を保存しました');
   });
 
   modalBackdrop.addEventListener('click', (e) => {
     if(e.target === modalBackdrop) modalBackdrop.classList.remove('show');
   });
 
-  // ========================================
-  // リアルタイムプレビュー（手動追加モーダル）
-  // ========================================
-
-  urlInput.addEventListener('input', () => {
+  urlInput.addEventListener('input', async () => {
     const url = urlInput.value.trim();
-
-    if(!url || !isValidURL(url)){
+    if(!url){
       urlPreview.style.display = 'none';
       return;
     }
 
     const platform = detectPlatform(url);
-
-    if(!platform){
-      urlPreview.style.display = 'flex';
-      urlPreviewThumb.style.display = 'none';
-      urlPreviewLabel.innerHTML = '';
-      const dot = document.createElement('span');
-      dot.className = 'platform-dot';
-      dot.style.background = 'var(--muted)';
-      urlPreviewLabel.appendChild(dot);
-      urlPreviewLabel.appendChild(document.createTextNode('未対応のURLです'));
-      return;
-    }
-
-    const meta = PLATFORM_META[platform];
     urlPreview.style.display = 'flex';
-    urlPreviewLabel.innerHTML = '';
-    const dot = document.createElement('span');
-    dot.className = 'platform-dot';
-    dot.style.background = meta.color;
-    urlPreviewLabel.appendChild(dot);
-    urlPreviewLabel.appendChild(document.createTextNode(meta.label + 'を検知しました'));
+    platformName.textContent = getPlatformLabel(platform);
+    platformDot.style.backgroundColor = getPlatformColor(platform);
 
-    // YouTubeの場合はサムネをその場でプレビュー
-    if(platform === 'youtube'){
-      const videoID = extractYouTubeID(url);
-      if(videoID){
-        urlPreviewThumb.src = getYouTubeThumbnail(videoID);
-        urlPreviewThumb.style.display = 'block';
-      } else {
-        urlPreviewThumb.style.display = 'none';
-      }
-    } else {
-      urlPreviewThumb.style.display = 'none';
-    }
-  });
-
-  document.getElementById('saveModal').addEventListener('click', () => {
-    const url = urlInput.value.trim();
-
-    // 【修正3】保存前にURL形式をチェック。不正な場合はモーダルを閉じずにエラー通知のみ
-    if(!isValidURL(url)){
-      showToast('正しいURL（http/https）を入力してください');
-      return;
-    }
-
-    let title = titleInput.value.trim();
-    if(!title) {
-      // タイトル空の場合は自動生成
-      title = generateTitleFromURL(url);
-    }
-
-    modalBackdrop.classList.remove('show');
-    runSaveFlow(url, title);
+    // サムネイル取得（非同期）
+    const thumb = await generateThumbnail(url, platform);
+    previewThumb.src = thumb;
   });
 
   // ========================================
-  // Toast 通知
+  // 削除機能（長押しトリガー）
   // ========================================
 
-  const toast = document.getElementById('toast');
-  const toastText = document.getElementById('toastText');
+  const sheetBackdrop = document.getElementById('sheetBackdrop');
+  const sheet = document.getElementById('sheet');
+  let selectedCardId = null;
 
-  function showToast(msg){
-    toastText.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2200);
+  function openSheet(id){
+    selectedCardId = id;
+    sheetBackdrop.classList.add('show');
   }
 
-  // ========================================
-  // プラットフォーム検知
-  // ========================================
-
-  function detectPlatform(url){
-    if(typeof url !== 'string' || !url) return null;
-    if(/youtube\.com|youtu\.be/.test(url)) return 'youtube';
-    if(/tiktok\.com/.test(url)) return 'tiktok';
-    if(/instagram\.com/.test(url)) return 'instagram';
-    return null;
+  function closeSheet(){
+    sheetBackdrop.classList.remove('show');
+    selectedCardId = null;
   }
 
-  // ========================================
-  // URLバリデーション（http/httpsのみ許可）
-  // ========================================
-
-  function isValidURL(url){
-    if(typeof url !== 'string' || !url.trim()) return false;
-    try {
-      const parsed = new URL(url.trim());
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch(e) {
-      return false;
-    }
-  }
-
-  // ========================================
-  // Save Flow（完全修正版）
-  // ========================================
-
-  const loading = document.getElementById('loading');
-
-  function runSaveFlow(url, title){
-    // 【修正3】URL形式バリデーション
-    if(!isValidURL(url)){
-      showToast('正しいURLを入力してください');
-      return;
-    }
-
-    const trimmedUrl = url.trim();
-
-    // 【修正5】重複登録チェック
-    if(items.some(i => i.url === trimmedUrl)){
-      showToast('既に保存されています');
-      return;
-    }
-
-    const platform = detectPlatform(trimmedUrl);
-
-    // 【修正3】未対応プラットフォームはブロック
-    if(!platform){
-      showToast('対応していないURLです（YouTube / TikTok / Instagramのみ）');
-      return;
-    }
-
-    loading.classList.add('show');
-
-    setTimeout(() => {
-      let thumb = null;
-
-      // 【修正1】YouTube の場合、正規表現で動画ID抽出してサムネイル URL 取得
-      if(platform === 'youtube'){
-        const videoID = extractYouTubeID(trimmedUrl);
-        if(videoID){
-          thumb = getYouTubeThumbnail(videoID);
-        }
-      }
-
-      // フォールバック（Picsum は実運用では除去推奨）
-      if(!thumb){
-        thumb = `https://picsum.photos/seed/reel${Date.now()}/400/620`;
-      }
-
-      // 【修正2】タイトルはユーザー入力か自動生成を使用
-      const newItem = {
-        id: String(Date.now()),
-        url: trimmedUrl,
-        platform,
-        title: title || generateTitleFromURL(trimmedUrl),
-        thumb,
-        created_at: Date.now(),
-      };
-
-      items.unshift(newItem);
-      saveToStorage(); // 【修正】追加直後に LocalStorage に保存
+  document.getElementById('deleteBtn').addEventListener('click', () => {
+    if(selectedCardId){
+      items = items.filter(i => i.id !== selectedCardId);
+      saveToStorage();
       render();
-      loading.classList.remove('show');
-      showToast('保存しました！');
-    }, 900);
-  }
+      closeSheet();
+      showToast('動画を削除しました');
+    }
+  });
 
-  // ========================================
-  // デモボタン
-  // ========================================
+  document.getElementById('cancelBtn').addEventListener('click', closeSheet);
 
-  document.getElementById('simulateShare').addEventListener('click', () => {
-    const demoUrls = [
-      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      'https://youtu.be/jNQXAC9IVRw',
-      'https://tiktok.com/@user/video/' + Math.random().toString(36).slice(2),
-      'https://instagram.com/reel/' + Math.random().toString(36).slice(2),
-    ];
-    const url = demoUrls[Math.floor(Math.random() * demoUrls.length)];
-    const title = generateTitleFromURL(url);
-    runSaveFlow(url, title);
+  sheetBackdrop.addEventListener('click', (e) => {
+    if(e.target === sheetBackdrop) closeSheet();
   });
 
   // ========================================
-  // テーマ管理（設定画面要件3）
-  // ========================================
-
-  const THEME_STORAGE_KEY = 'reel-mini-theme';
-
-  function loadTheme(){
-    try {
-      const theme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
-      applyTheme(theme);
-    } catch(e) {
-      applyTheme('dark');
-    }
-  }
-
-  function applyTheme(theme){
-    const html = document.documentElement;
-    if(theme === 'light'){
-      html.classList.add('light-mode');
-      localStorage.setItem(THEME_STORAGE_KEY, 'light');
-      updateThemeButtons('light');
-    } else {
-      html.classList.remove('light-mode');
-      localStorage.setItem(THEME_STORAGE_KEY, 'dark');
-      updateThemeButtons('dark');
-    }
-  }
-
-  function updateThemeButtons(theme){
-    const darkBtn = document.getElementById('darkThemeBtn');
-    const lightBtn = document.getElementById('lightThemeBtn');
-    darkBtn.classList.remove('active');
-    lightBtn.classList.remove('active');
-    if(theme === 'light'){
-      lightBtn.classList.add('active');
-    } else {
-      darkBtn.classList.add('active');
-    }
-  }
-
-  // ========================================
-  // 設定画面UI（要件1, 2, 3, 4）
+  // 設定画面UI
   // ========================================
 
   const settingsOverlay = document.getElementById('settingsOverlay');
@@ -995,13 +920,13 @@
   });
 
   // ========================================
-  // バックアップ機能（設定画面要件1）
+  // バックアップ機能（お気に入り状態も含める）
   // ========================================
 
   document.getElementById('backupBtn').addEventListener('click', () => {
     try {
       const backup = {
-        version: '1.0',
+        version: '2.0',
         exportedAt: new Date().toISOString(),
         items: items,
       };
@@ -1025,7 +950,7 @@
   });
 
   // ========================================
-  // 復元機能（設定画面要件2）
+  // 復元機能（お気に入り状態も復元）
   // ========================================
 
   const restoreFile = document.getElementById('restoreFile');
@@ -1047,7 +972,7 @@
           return;
         }
 
-        // 【修正6】各アイテムが必須プロパティを持っているか検証
+        // バリデーション：各アイテムが必須プロパティを持っているか
         const REQUIRED_KEYS = ['id', 'url', 'platform', 'title', 'thumb'];
         const isValidItem = (item) => {
           if(!item || typeof item !== 'object') return false;
@@ -1075,7 +1000,7 @@
   });
 
   // ========================================
-  // テーマ切り替え（設定画面要件3）
+  // テーマ切り替え
   // ========================================
 
   document.getElementById('darkThemeBtn').addEventListener('click', () => {
@@ -1087,7 +1012,7 @@
   });
 
   // ========================================
-  // データ全消去（設定画面要件4 - 確認ダイアログ付き）
+  // データ全消去（確認ダイアログ付き）
   // ========================================
 
   document.getElementById('deleteAllBtn').addEventListener('click', () => {
@@ -1121,34 +1046,30 @@
   });
 
   // ========================================
-  // 戻るボタン対応（要件1）
+  // 戻るボタン対応
   // ========================================
 
   window.addEventListener('popstate', () => {
-    // 設定画面が開いている場合は閉じる
     if(settingsOverlay.classList.contains('show')){
       settingsOverlay.classList.remove('show');
       return;
     }
-    // モーダルが開いている場合は閉じる
     if(modalBackdrop.classList.contains('show')){
       modalBackdrop.classList.remove('show');
       return;
     }
-    // シートが開いている場合は閉じる
     if(sheetBackdrop.classList.contains('show')){
       closeSheet();
       return;
     }
   });
 
-  // ブラウザの戻るボタン/ジェスチャーで popstate を発火させるために履歴を管理
   if(history.length === 1){
     window.history.pushState({page: 'main'}, null);
   }
 
   // ========================================
-  // Web Share Target 自動受け取り（要件1）
+  // Web Share Target 自動受け取り
   // ========================================
 
   function extractSharedURL(){
@@ -1157,7 +1078,6 @@
     const title = (params.get('title') || '').trim();
     const text = (params.get('text') || '').trim();
 
-    // url パラメータが無い場合、text の中からURLらしき文字列を抽出
     if(!url && text){
       const match = text.match(/https?:\/\/[^\s]+/);
       if(match) url = match[0];
@@ -1166,16 +1086,45 @@
     return { url, title };
   }
 
+  function runSaveFlow(url, title){
+    const platform = detectPlatform(url);
+    const loading = document.getElementById('loading');
+    loading.classList.add('show');
+
+    generateThumbnail(url, platform).then(thumb => {
+      const newItem = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        url: url,
+        platform: platform,
+        title: title || `動画 - ${getPlatformLabel(platform)}`,
+        thumb: thumb,
+        timestamp: Date.now(),
+        favorite: false,
+      };
+
+      items.push(newItem);
+      saveToStorage();
+      
+      currentFolder = platform;
+      document.querySelectorAll('.folder-tab').forEach(t => {
+        t.classList.remove('active');
+        if(t.dataset.folder === platform) t.classList.add('active');
+      });
+
+      render();
+      loading.classList.remove('show');
+      showToast('動画を保存しました');
+    });
+  }
+
   function handleShareTarget(){
     const hadParams = !!window.location.search;
     const { url, title } = extractSharedURL();
 
     if(url){
-      // 手動追加モーダルを開かず、裏側で即座に保存フローを実行
       runSaveFlow(url, title);
     }
 
-    // 二重登録防止のため、処理後にクエリパラメータを履歴から消去
     if(hadParams){
       history.replaceState({}, document.title, window.location.pathname);
     }
