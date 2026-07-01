@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>REEL-MINI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF8F3F">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0D0F;
+    --surface:#18181B;
+    --surface-2:#222226;
+    --accent:#FF8F3F;
+    --accent-dim:#5C3A22;
+    --ok:#3DDC97;
+    --danger:#FF5C5C;
+    --text:#F5F3EE;
+    --muted:#8C8C92;
+    --yt:#FF3B30;
+    --tt:#25F4EE;
+    --ig:#E1306C;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    overscroll-behavior-y:none;
+  }
+  body{
+    min-height:100dvh;
+    display:flex; flex-direction:column;
+  }
+  /* sprocket strip — signature motif */
+  .sprockets{
+    display:flex; gap:7px; padding:calc(var(--safe-top) + 8px) 16px 6px;
+    overflow:hidden; background:var(--bg);
+  }
+  .sprockets span{
+    width:5px; height:5px; border-radius:50%; background:var(--surface-2);
+    flex:0 0 auto;
+  }
+
+  header{
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:4px 18px 14px;
+    background:var(--bg);
+    border-bottom:1px solid var(--surface-2);
+  }
+  .logo{
+    font-family:"Space Grotesk", sans-serif; font-weight:700;
+    font-size:22px; letter-spacing:-0.02em; color:var(--text);
+    display:flex; align-items:baseline; gap:2px;
+  }
+  .logo .dot{color:var(--accent);}
+
+  .add-btn{
+    width:42px; height:42px; border-radius:50%;
+    background:var(--accent); color:#16100A;
+    border:none; font-size:24px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 4px rgba(255,143,63,0.12);
+    transition:transform .15s ease;
+  }
+  .add-btn:active{transform:scale(0.9);}
+
+  main{
+    flex:1; overflow-y:auto;
+    padding:14px 14px calc(var(--safe-bottom) + 90px);
+  }
+
+  .grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+
+  .card{
+    position:relative; border-radius:14px; overflow:hidden;
+    background:var(--surface); aspect-ratio:9/14;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    transition:transform .12s ease;
+  }
+  .card.pressing{transform:scale(0.96);}
+  .card img{
+    width:100%; height:100%; object-fit:cover; display:block;
+    filter:saturate(1.05);
+  }
+  .card .grad{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.78) 100%);
+  }
+  .card .badge{
+    position:absolute; left:8px; bottom:8px;
+    display:flex; align-items:center; gap:5px;
+    background:rgba(0,0,0,0.45); backdrop-filter:blur(6px);
+    padding:4px 8px 4px 6px; border-radius:100px;
+  }
+  .card .badge .dot{width:7px; height:7px; border-radius:50%;}
+  .card .badge span{font-size:11px; font-weight:600; color:#fff; letter-spacing:0.02em;}
+  .card .title{
+    position:absolute; right:8px; left:8px; bottom:30px;
+    font-size:12px; color:rgba(255,255,255,0.85); line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  .empty{
+    text-align:center; padding:80px 30px 0; color:var(--muted);
+  }
+  .empty .glyph{font-size:36px; margin-bottom:14px; opacity:.6;}
+  .empty h3{color:var(--text); font-size:16px; margin:0 0 8px; font-weight:600;}
+  .empty p{font-size:13px; line-height:1.6; margin:0;}
+
+  /* demo control — only for mockup walkthrough, would not exist in shipped app */
+  .demo-bar{
+    position:fixed; left:0; right:0; bottom:0; z-index:20;
+    padding:10px 14px calc(var(--safe-bottom) + 10px);
+    background:linear-gradient(180deg, transparent, var(--bg) 30%);
+  }
+  .demo-btn{
+    width:100%; padding:13px; border-radius:14px; border:1px dashed var(--accent-dim);
+    background:rgba(255,143,63,0.06); color:var(--accent);
+    font-size:13px; font-weight:600; font-family:inherit;
+  }
+  .demo-btn:active{background:rgba(255,143,63,0.14);}
+
+  /* toast */
+  .toast{
+    position:fixed; left:50%; bottom:90px; transform:translateX(-50%) translateY(20px);
+    background:var(--surface-2); color:var(--text);
+    padding:12px 18px; border-radius:100px; font-size:13px; font-weight:600;
+    display:flex; align-items:center; gap:8px;
+    opacity:0; pointer-events:none; transition:all .25s ease;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4); z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .ok-dot{width:8px; height:8px; border-radius:50%; background:var(--ok);}
+
+  /* loading overlay — simulates the white share-target launch screen */
+  .loading{
+    position:fixed; inset:0; background:var(--bg); z-index:60;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .loading.show{opacity:1; pointer-events:all;}
+  .spinner{
+    width:30px; height:30px; border-radius:50%;
+    border:3px solid var(--surface-2); border-top-color:var(--accent);
+    animation:spin .7s linear infinite;
+  }
+  .loading p{color:var(--muted); font-size:13px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* action sheet for long-press delete */
+  .sheet-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:40;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .sheet-backdrop.show{opacity:1; pointer-events:all;}
+  .sheet{
+    position:fixed; left:10px; right:10px; bottom:calc(var(--safe-bottom) + 10px);
+    z-index:41; transform:translateY(120%); transition:transform .25s cubic-bezier(.2,.9,.3,1);
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheet-group{background:var(--surface-2); border-radius:16px; overflow:hidden; margin-bottom:8px;}
+  .sheet-item{
+    padding:16px; text-align:center; font-size:16px; font-weight:600;
+    border-bottom:1px solid rgba(255,255,255,0.06); background:none; border-left:none; border-right:none; border-top:none;
+    width:100%; color:var(--text); font-family:inherit;
+  }
+  .sheet-item:last-child{border-bottom:none;}
+  .sheet-item.danger{color:var(--danger);}
+  .sheet-item.cancel{background:var(--surface-2); border-radius:16px; font-weight:700;}
+
+  /* add modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:40;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+    display:flex; align-items:flex-end;
+  }
+  .modal-backdrop.show{opacity:1; pointer-events:all;}
+  .modal{
+    width:100%; background:var(--surface); border-radius:20px 20px 0 0;
+    padding:22px 18px calc(var(--safe-bottom) + 22px);
+    transform:translateY(100%); transition:transform .25s cubic-bezier(.2,.9,.3,1);
+  }
+  .modal-backdrop.show .modal{transform:translateY(0);}
+  .modal h3{margin:0 0 14px; font-size:17px;}
+  .modal input{
+    width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--surface-2);
+    background:var(--bg); color:var(--text); font-size:14px; margin-bottom:12px;
+  }
+  .modal input::placeholder{color:var(--muted);}
+  .url-preview{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px; margin:-4px 0 12px; border-radius:10px;
+    background:var(--bg); border:1px solid var(--surface-2);
+    font-size:13px; color:var(--muted);
+  }
+  .url-preview img{
+    width:34px; height:52px; object-fit:cover; border-radius:6px;
+    flex:0 0 auto; background:var(--surface-2);
+  }
+  .url-preview .platform-dot{
+    width:8px; height:8px; border-radius:50%; flex:0 0 auto;
+  }
+  .url-preview span{display:flex; align-items:center; gap:6px; font-weight:600;}
+  .modal-actions{display:flex; gap:8px;}
+  .modal-actions button{
+    flex:1; padding:13px; border-radius:12px; border:none; font-size:14px; font-weight:700; font-family:inherit;
+  }
+  .btn-cancel{background:var(--surface-2); color:var(--text);}
+  .btn-save{background:var(--accent); color:#16100A;}
+
+  /* 設定画面 */
+  .settings-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:70;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+    display:flex; align-items:flex-end;
+  }
+  .settings-overlay.show{opacity:1; pointer-events:all;}
+  .settings-panel{
+    width:100%; background:var(--surface); border-radius:20px 20px 0 0;
+    padding:22px 18px calc(var(--safe-bottom) + 22px);
+    transform:translateY(100%); transition:transform .25s cubic-bezier(.2,.9,.3,1);
+    max-height:80dvh; overflow-y:auto;
+  }
+  .settings-overlay.show .settings-panel{transform:translateY(0);}
+  .settings-panel h2{margin:0 0 20px; font-size:18px; font-weight:700;}
+  .settings-group{margin-bottom:20px; border-top:1px solid var(--surface-2); padding-top:16px;}
+  .settings-group:first-of-type{border-top:none; padding-top:0;}
+  .settings-group h3{margin:0 0 12px; font-size:14px; font-weight:600; color:var(--muted);}
+  .settings-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0; gap:12px;
+  }
+  .settings-item-label{flex:1; font-size:15px;}
+  .settings-btn{
+    flex:1; padding:13px; border-radius:12px; border:none; font-size:14px; font-weight:700;
+    font-family:inherit; transition:background .15s ease; cursor:pointer;
+  }
+  .settings-btn.primary{background:var(--accent); color:#16100A;}
+  .settings-btn.primary:active{background:rgba(255,143,63,0.8);}
+  .settings-btn.secondary{background:var(--surface-2); color:var(--text);}
+  .settings-btn.secondary:active{background:rgba(34,34,38,0.8);}
+  .settings-btn.danger{background:rgba(255,92,92,0.1); color:var(--danger);}
+  .settings-btn.danger:active{background:rgba(255,92,92,0.2);}
+  .theme-toggle{
+    display:flex; gap:8px;
+  }
+  .theme-btn{
+    flex:1; padding:10px; border-radius:10px; border:1px solid var(--surface-2);
+    background:var(--surface-2); color:var(--text); font-size:13px; font-weight:600;
+    transition:all .15s ease; cursor:pointer;
+  }
+  .theme-btn.active{background:var(--accent); color:#16100A; border-color:var(--accent);}
+  .settings-close-btn{
+    width:100%; padding:13px; border-radius:12px; border:none;
+    background:var(--surface-2); color:var(--text); font-size:14px; font-weight:700;
+    font-family:inherit; margin-top:12px; cursor:pointer;
+  }
+
+  /* 確認ダイアログ */
+  .confirm-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:80;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .confirm-overlay.show{opacity:1; pointer-events:all;}
+  .confirm-dialog{
+    background:var(--surface); border-radius:16px; padding:22px;
+    max-width:280px; text-align:center;
+  }
+  .confirm-dialog h3{margin:0 0 10px; font-size:16px; font-weight:700;}
+  .confirm-dialog p{margin:0 0 20px; font-size:14px; color:var(--muted); line-height:1.5;}
+  .confirm-actions{display:flex; gap:8px;}
+  .confirm-actions button{
+    flex:1; padding:12px; border-radius:10px; border:none; font-size:13px; font-weight:700;
+    font-family:inherit; cursor:pointer;
+  }
+  .btn-confirm-cancel{background:var(--surface-2); color:var(--text);}
+  .btn-confirm-delete{background:var(--danger); color:#fff;}
+
+  /* テーマ切り替え */
+  html.light-mode{
+    --bg:#F5F3EE;
+    --surface:#FFFFFF;
+    --surface-2:#F0EEEA;
+    --text:#1A1917;
+    --muted:#7F7D7A;
+    --accent-dim:#FFE5D0;
+  }
+
+  .settings-btn:disabled{opacity:0.5; cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+  <div class="sprockets" id="sprockets"></div>
+
+  <header>
+    <div class="logo">REEL<span class="dot">.</span></div>
+    <div style="display:flex; gap:8px;">
+      <button class="add-btn" id="addBtn" aria-label="動画を手動で追加">＋</button>
+      <button class="add-btn" id="settingsBtn" aria-label="設定を開く" style="background:var(--surface-2); font-size:18px;">⚙</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="emptyState" style="display:none;">
+      <div class="glyph">🎞️</div>
+      <h3>まだ動画がありません</h3>
+      <p>YouTubeやTikTokの共有メニューから<br>「REEL-MINI」を選ぶだけで保存されます。</p>
+    </div>
+  </main>
+
+  <div class="demo-bar">
+    <button class="demo-btn" id="simulateShare">共有から保存をシミュレート ▶</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>保存しています…</p>
+  </div>
+
+  <div class="toast" id="toast"><span class="ok-dot"></span><span id="toastText">保存しました！</span></div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-group">
+      <div style="padding:10px 16px; font-size:12px; color:var(--muted);" id="sheetTitle">この動画を削除しますか？</div>
+      <button class="sheet-item danger" id="confirmDelete">削除する</button>
+    </div>
+    <div class="sheet-group">
+      <button class="sheet-item cancel" id="cancelSheet">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <h3>動画を追加</h3>
+      <input type="url" id="urlInput" placeholder="YouTubeのURLを貼り付け">
+      <div class="url-preview" id="urlPreview" style="display:none;">
+        <img id="urlPreviewThumb" alt="">
+        <span id="urlPreviewLabel"></span>
+      </div>
+      <input type="text" id="titleInput" placeholder="タイトル（省略可）">
+      <div class="modal-actions">
+        <button class="btn-cancel" id="cancelModal">キャンセル</button>
+        <button class="btn-save" id="saveModal">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定画面 -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <h2>設定</h2>
+
+      <!-- バックアップ -->
+      <div class="settings-group">
+        <h3>1. バックアップ</h3>
+        <button class="settings-btn primary" id="backupBtn">📥 データをエクスポート</button>
+      </div>
+
+      <!-- 復元 -->
+      <div class="settings-group">
+        <h3>2. 復元</h3>
+        <input type="file" id="restoreFile" accept=".json" style="display:none;">
+        <button class="settings-btn primary" id="restoreBtn">📤 バックアップから復元</button>
+      </div>
+
+      <!-- テーマ切り替え -->
+      <div class="settings-group">
+        <h3>3. テーマ</h3>
+        <div class="theme-toggle">
+          <button class="theme-btn active" id="darkThemeBtn">🌙 ダーク</button>
+          <button class="theme-btn" id="lightThemeBtn">☀️ ライト</button>
+        </div>
+      </div>
+
+      <!-- データ全消去 -->
+      <div class="settings-group">
+        <h3>4. データ管理</h3>
+        <button class="settings-btn danger" id="deleteAllBtn">🗑️ すべてのデータを削除</button>
+      </div>
+
+      <button class="settings-close-btn" id="settingsCloseBtn">閉じる</button>
+    </div>
+  </div>
+
+  <!-- 確認ダイアログ -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-dialog">
+      <h3 id="confirmTitle">確認</h3>
+      <p id="confirmMessage">本当にすべてのデータを削除しますか？</p>
+      <div class="confirm-actions">
+        <button class="btn-confirm-cancel" id="confirmCancel">キャンセル</button>
+        <button class="btn-confirm-delete" id="confirmDelete">削除</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ========================================
+  // ステップ2修正版 セキュリティ・機能完全実装
+  // ========================================
+
+  // ---- プラットフォームメタデータ ----
+  const PLATFORM_META = {
+    youtube:  { label: 'YouTube',   color: 'var(--yt)' },
+    tiktok:   { label: 'TikTok',    color: 'var(--tt)' },
+    instagram:{ label: 'Instagram', color: 'var(--ig)' },
+  };
+
+  // ---- LocalStorage キー ----
+  const STORAGE_KEY = 'reel-mini-items';
+
+  // ---- 初期デモデータ（LocalStorage空の場合のみ使用） ----
+  const DEMO_DATA = [
+    { id:'1', url:'https://youtube.com/watch?v=demo1', platform:'youtube', title:'渋谷で見つけた絶品ラーメン店巡り', thumb:'https://img.youtube.com/vi/demo1/hqdefault.jpg', created_at: Date.now()-1000*60*30 },
+    { id:'2', url:'https://tiktok.com/@demo/video/2', platform:'tiktok', title:'3分でできる時短レシピ', thumb:'https://picsum.photos/seed/reel2/400/620', created_at: Date.now()-1000*60*60*3 },
+    { id:'3', url:'https://instagram.com/reel/demo3', platform:'instagram', title:'初夏の鎌倉さんぽ', thumb:'https://picsum.photos/seed/reel3/400/620', created_at: Date.now()-1000*60*60*9 },
+    { id:'4', url:'https://youtube.com/watch?v=demo4', platform:'youtube', title:'AI開発、非エンジニアでもここまでできた話', thumb:'https://img.youtube.com/vi/demo4/hqdefault.jpg', created_at: Date.now()-1000*60*60*26 },
+  ];
+
+  // ---- グローバル状態 ----
+  let items = [];
+  const grid = document.getElementById('grid');
+  const emptyState = document.getElementById('emptyState');
+  let pendingDeleteId = null;
+  let pressTimer = null;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  // ========================================
+  // 1. LocalStorage 永続化機構
+  // ========================================
+
+  function loadFromStorage(){
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if(stored) {
+        items = JSON.parse(stored);
+      } else {
+        items = JSON.parse(JSON.stringify(DEMO_DATA));
+        saveToStorage();
+      }
+    } catch(e) {
+      console.error('LocalStorage読み込みエラー:', e);
+      items = JSON.parse(JSON.stringify(DEMO_DATA));
+    }
+  }
+
+  function saveToStorage(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch(e) {
+      console.error('LocalStorage保存エラー:', e);
+    }
+  }
+
+  // ========================================
+  // 2. XSS脆弱性排除 - 安全なDOM生成
+  // ========================================
+
+  function escapeHTML(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function safeCreateCard(item) {
+    const meta = PLATFORM_META[item.platform];
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    // img要素を安全に生成
+    const img = document.createElement('img');
+    img.src = item.thumb;
+    img.alt = item.title;
+    img.loading = 'lazy';
+
+    // グラデーションdiv
+    const grad = document.createElement('div');
+    grad.className = 'grad';
+
+    // タイトルテキスト（XSS対策：textContent使用）
+    const titleEl = document.createElement('div');
+    titleEl.className = 'title';
+    titleEl.textContent = item.title;
+
+    // バッジ要素（innerHTML不使用）
+    const badge = document.createElement('div');
+    badge.className = 'badge';
+    
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.style.background = meta.color;
+
+    const label = document.createElement('span');
+    label.textContent = meta.label;
+
+    badge.appendChild(dot);
+    badge.appendChild(label);
+
+    // DOMに追加
+    card.appendChild(img);
+    card.appendChild(grad);
+    card.appendChild(titleEl);
+    card.appendChild(badge);
+
+    return card;
+  }
+
+  // ========================================
+  // 3. レンダリング（破壊的ソート修正）
+  // ========================================
+
+  function render(){
+    grid.innerHTML = '';
+
+    if(items.length === 0){
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+
+    // 【修正】スプレッド演算子でコピーしてソート（元の配列を破壊しない）
+    const sorted = [...items].sort((a, b) => b.created_at - a.created_at);
+
+    sorted.forEach(item => {
+      const card = safeCreateCard(item);
+
+      card.addEventListener('click', () => {
+        if(card.classList.contains('suppress-click')) return;
+        window.open(item.url, '_blank');
+      });
+
+      bindLongPress(card, item.id, item.title);
+      grid.appendChild(card);
+    });
+  }
+
+  // ========================================
+  // 4. 長押し判定 - スクロール誤爆防止
+  // ========================================
+
+  function bindLongPress(el, id, title){
+    let touchMoved = false;
+    let moved = false;
+
+    const start = (e) => {
+      touchMoved = false;
+      moved = false;
+      touchStartX = e.touches ? e.touches[0].clientX : e.clientX;
+      touchStartY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      el.classList.add('pressing');
+
+      pressTimer = setTimeout(() => {
+        // スクロール判定：スクロール動作中なら長押しを発火しない
+        if(!touchMoved && !moved){
+          el.classList.add('suppress-click');
+          openSheet(id, title);
+          if(navigator.vibrate) navigator.vibrate(12);
+        }
+      }, 500);
+    };
+
+    const onMove = (e) => {
+      if(!touchStartX || !touchStartY) return;
+
+      const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+      const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      // 【修正】指の移動距離を計算
+      const distX = Math.abs(currentX - touchStartX);
+      const distY = Math.abs(currentY - touchStartY);
+
+      // スクロール判定：上下移動が8px以上、または横移動があればスクロール中と判定
+      if(distY > 8 || distX > 5){
+        touchMoved = true;
+        // 長押しタイマーをキャンセル
+        if(pressTimer){
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      }
+
+      moved = true;
+    };
+
+    const cancel = () => {
+      if(pressTimer) clearTimeout(pressTimer);
+      pressTimer = null;
+      el.classList.remove('pressing');
+      setTimeout(() => el.classList.remove('suppress-click'), 50);
+      touchStartX = 0;
+      touchStartY = 0;
+    };
+
+    el.addEventListener('touchstart', start, {passive: true});
+    el.addEventListener('touchmove', onMove, {passive: true});
+    el.addEventListener('touchend', cancel);
+    el.addEventListener('touchcancel', cancel);
+
+    el.addEventListener('mousedown', start);
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseup', cancel);
+    el.addEventListener('mouseleave', cancel);
+  }
+
+  // ========================================
+  // 5. YouTube動画ID抽出 - 正規表現実装
+  // ========================================
+
+  function extractYouTubeID(url) {
+    // 形式例：
+    // - https://www.youtube.com/watch?v=【ID】
+    // - https://youtu.be/【ID】
+    // - https://www.youtube.com/watch?v=【ID】&t=...
+    // - https://youtu.be/【ID】?t=...
+
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+      /m\.youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    ];
+
+    for(let pattern of patterns) {
+      const match = url.match(pattern);
+      if(match && match[1]){
+        return match[1];
+      }
+    }
+
+    return null;
+  }
+
+  function getYouTubeThumbnail(videoID) {
+    // YouTube公式サムネイル URL
+    return `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`;
+  }
+
+  // ========================================
+  // 6. タイトル自動生成（URL切り出し＆手動入力）
+  // ========================================
+
+  function generateTitleFromURL(url) {
+    // YouTube ID を抽出して、タイトルのプレースホルダーを生成
+    const videoID = extractYouTubeID(url);
+    if(videoID) {
+      return `YouTube動画 (ID: ${videoID.slice(0,5)}...)`;
+    }
+
+    // TikTok URL から ID を抽出
+    const tiktokMatch = url.match(/tiktok\.com\/@([a-zA-Z0-9_.-]+)\/video\/(\d+)/);
+    if(tiktokMatch) {
+      return `TikTok動画 (@${tiktokMatch[1]})`;
+    }
+
+    // Instagram Reel から ID を抽出
+    const instagramMatch = url.match(/instagram\.com\/reel\/([a-zA-Z0-9_-]+)/);
+    if(instagramMatch) {
+      return `Instagram Reel (${instagramMatch[1].slice(0,5)}...)`;
+    }
+
+    // フォールバック
+    return '新しく共有された動画';
+  }
+
+  // ========================================
+  // Sprocket strip 生成
+  // ========================================
+
+  const sprocketEl = document.getElementById('sprockets');
+  for(let i = 0; i < 24; i++){
+    const s = document.createElement('span');
+    sprocketEl.appendChild(s);
+  }
+
+  // ========================================
+  // Delete Sheet UI
+  // ========================================
+
+  const sheetBackdrop = document.getElementById('sheetBackdrop');
+  const sheet = document.getElementById('sheet');
+  const sheetTitle = document.getElementById('sheetTitle');
+
+  function openSheet(id, title){
+    pendingDeleteId = id;
+    // 【安全】textContent を使用してXSS防止
+    sheetTitle.textContent = title;
+    sheetBackdrop.classList.add('show');
+    sheet.classList.add('show');
+  }
+
+  function closeSheet(){
+    sheetBackdrop.classList.remove('show');
+    sheet.classList.remove('show');
+    pendingDeleteId = null;
+  }
+
+  document.getElementById('cancelSheet').addEventListener('click', closeSheet);
+  sheetBackdrop.addEventListener('click', closeSheet);
+  document.getElementById('confirmDelete').addEventListener('click', () => {
+    items = items.filter(i => i.id !== pendingDeleteId);
+    saveToStorage(); // 【修正】削除後に保存
+    render();
+    closeSheet();
+    showToast('削除しました');
+  });
+
+  // ========================================
+  // Add Modal UI（手動入力で URL ＆ タイトル）
+  // ========================================
+
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const urlInput = document.getElementById('urlInput');
+  const titleInput = document.getElementById('titleInput');
+  const urlPreview = document.getElementById('urlPreview');
+  const urlPreviewThumb = document.getElementById('urlPreviewThumb');
+  const urlPreviewLabel = document.getElementById('urlPreviewLabel');
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    urlInput.value = '';
+    titleInput.value = '';
+    urlPreview.style.display = 'none';
+    urlPreviewThumb.style.display = 'none';
+    modalBackdrop.classList.add('show');
+  });
+
+  document.getElementById('cancelModal').addEventListener('click', () => {
+    modalBackdrop.classList.remove('show');
+  });
+
+  modalBackdrop.addEventListener('click', (e) => {
+    if(e.target === modalBackdrop) modalBackdrop.classList.remove('show');
+  });
+
+  // ========================================
+  // リアルタイムプレビュー（手動追加モーダル）
+  // ========================================
+
+  urlInput.addEventListener('input', () => {
+    const url = urlInput.value.trim();
+
+    if(!url || !isValidURL(url)){
+      urlPreview.style.display = 'none';
+      return;
+    }
+
+    const platform = detectPlatform(url);
+
+    if(!platform){
+      urlPreview.style.display = 'flex';
+      urlPreviewThumb.style.display = 'none';
+      urlPreviewLabel.innerHTML = '';
+      const dot = document.createElement('span');
+      dot.className = 'platform-dot';
+      dot.style.background = 'var(--muted)';
+      urlPreviewLabel.appendChild(dot);
+      urlPreviewLabel.appendChild(document.createTextNode('未対応のURLです'));
+      return;
+    }
+
+    const meta = PLATFORM_META[platform];
+    urlPreview.style.display = 'flex';
+    urlPreviewLabel.innerHTML = '';
+    const dot = document.createElement('span');
+    dot.className = 'platform-dot';
+    dot.style.background = meta.color;
+    urlPreviewLabel.appendChild(dot);
+    urlPreviewLabel.appendChild(document.createTextNode(meta.label + 'を検知しました'));
+
+    // YouTubeの場合はサムネをその場でプレビュー
+    if(platform === 'youtube'){
+      const videoID = extractYouTubeID(url);
+      if(videoID){
+        urlPreviewThumb.src = getYouTubeThumbnail(videoID);
+        urlPreviewThumb.style.display = 'block';
+      } else {
+        urlPreviewThumb.style.display = 'none';
+      }
+    } else {
+      urlPreviewThumb.style.display = 'none';
+    }
+  });
+
+  document.getElementById('saveModal').addEventListener('click', () => {
+    const url = urlInput.value.trim();
+
+    // 【修正3】保存前にURL形式をチェック。不正な場合はモーダルを閉じずにエラー通知のみ
+    if(!isValidURL(url)){
+      showToast('正しいURL（http/https）を入力してください');
+      return;
+    }
+
+    let title = titleInput.value.trim();
+    if(!title) {
+      // タイトル空の場合は自動生成
+      title = generateTitleFromURL(url);
+    }
+
+    modalBackdrop.classList.remove('show');
+    runSaveFlow(url, title);
+  });
+
+  // ========================================
+  // Toast 通知
+  // ========================================
+
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toastText');
+
+  function showToast(msg){
+    toastText.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // ========================================
+  // プラットフォーム検知
+  // ========================================
+
+  function detectPlatform(url){
+    if(typeof url !== 'string' || !url) return null;
+    if(/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+    if(/tiktok\.com/.test(url)) return 'tiktok';
+    if(/instagram\.com/.test(url)) return 'instagram';
+    return null;
+  }
+
+  // ========================================
+  // URLバリデーション（http/httpsのみ許可）
+  // ========================================
+
+  function isValidURL(url){
+    if(typeof url !== 'string' || !url.trim()) return false;
+    try {
+      const parsed = new URL(url.trim());
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch(e) {
+      return false;
+    }
+  }
+
+  // ========================================
+  // Save Flow（完全修正版）
+  // ========================================
+
+  const loading = document.getElementById('loading');
+
+  function runSaveFlow(url, title){
+    // 【修正3】URL形式バリデーション
+    if(!isValidURL(url)){
+      showToast('正しいURLを入力してください');
+      return;
+    }
+
+    const trimmedUrl = url.trim();
+
+    // 【修正5】重複登録チェック
+    if(items.some(i => i.url === trimmedUrl)){
+      showToast('既に保存されています');
+      return;
+    }
+
+    const platform = detectPlatform(trimmedUrl);
+
+    // 【修正3】未対応プラットフォームはブロック
+    if(!platform){
+      showToast('対応していないURLです（YouTube / TikTok / Instagramのみ）');
+      return;
+    }
+
+    loading.classList.add('show');
+
+    setTimeout(() => {
+      let thumb = null;
+
+      // 【修正1】YouTube の場合、正規表現で動画ID抽出してサムネイル URL 取得
+      if(platform === 'youtube'){
+        const videoID = extractYouTubeID(trimmedUrl);
+        if(videoID){
+          thumb = getYouTubeThumbnail(videoID);
+        }
+      }
+
+      // フォールバック（Picsum は実運用では除去推奨）
+      if(!thumb){
+        thumb = `https://picsum.photos/seed/reel${Date.now()}/400/620`;
+      }
+
+      // 【修正2】タイトルはユーザー入力か自動生成を使用
+      const newItem = {
+        id: String(Date.now()),
+        url: trimmedUrl,
+        platform,
+        title: title || generateTitleFromURL(trimmedUrl),
+        thumb,
+        created_at: Date.now(),
+      };
+
+      items.unshift(newItem);
+      saveToStorage(); // 【修正】追加直後に LocalStorage に保存
+      render();
+      loading.classList.remove('show');
+      showToast('保存しました！');
+    }, 900);
+  }
+
+  // ========================================
+  // デモボタン
+  // ========================================
+
+  document.getElementById('simulateShare').addEventListener('click', () => {
+    const demoUrls = [
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      'https://youtu.be/jNQXAC9IVRw',
+      'https://tiktok.com/@user/video/' + Math.random().toString(36).slice(2),
+      'https://instagram.com/reel/' + Math.random().toString(36).slice(2),
+    ];
+    const url = demoUrls[Math.floor(Math.random() * demoUrls.length)];
+    const title = generateTitleFromURL(url);
+    runSaveFlow(url, title);
+  });
+
+  // ========================================
+  // テーマ管理（設定画面要件3）
+  // ========================================
+
+  const THEME_STORAGE_KEY = 'reel-mini-theme';
+
+  function loadTheme(){
+    try {
+      const theme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+      applyTheme(theme);
+    } catch(e) {
+      applyTheme('dark');
+    }
+  }
+
+  function applyTheme(theme){
+    const html = document.documentElement;
+    if(theme === 'light'){
+      html.classList.add('light-mode');
+      localStorage.setItem(THEME_STORAGE_KEY, 'light');
+      updateThemeButtons('light');
+    } else {
+      html.classList.remove('light-mode');
+      localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+      updateThemeButtons('dark');
+    }
+  }
+
+  function updateThemeButtons(theme){
+    const darkBtn = document.getElementById('darkThemeBtn');
+    const lightBtn = document.getElementById('lightThemeBtn');
+    darkBtn.classList.remove('active');
+    lightBtn.classList.remove('active');
+    if(theme === 'light'){
+      lightBtn.classList.add('active');
+    } else {
+      darkBtn.classList.add('active');
+    }
+  }
+
+  // ========================================
+  // 設定画面UI（要件1, 2, 3, 4）
+  // ========================================
+
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  const confirmTitle = document.getElementById('confirmTitle');
+  const confirmMessage = document.getElementById('confirmMessage');
+
+  document.getElementById('settingsBtn').addEventListener('click', () => {
+    settingsOverlay.classList.add('show');
+  });
+
+  document.getElementById('settingsCloseBtn').addEventListener('click', () => {
+    settingsOverlay.classList.remove('show');
+  });
+
+  settingsOverlay.addEventListener('click', (e) => {
+    if(e.target === settingsOverlay) settingsOverlay.classList.remove('show');
+  });
+
+  // ========================================
+  // バックアップ機能（設定画面要件1）
+  // ========================================
+
+  document.getElementById('backupBtn').addEventListener('click', () => {
+    try {
+      const backup = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        items: items,
+      };
+
+      const json = JSON.stringify(backup, null, 2);
+      const blob = new Blob([json], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reel-mini-backup-${new Date().getTime()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('バックアップをダウンロードしました');
+    } catch(e) {
+      console.error('バックアップエラー:', e);
+      showToast('バックアップに失敗しました');
+    }
+  });
+
+  // ========================================
+  // 復元機能（設定画面要件2）
+  // ========================================
+
+  const restoreFile = document.getElementById('restoreFile');
+
+  document.getElementById('restoreBtn').addEventListener('click', () => {
+    restoreFile.click();
+  });
+
+  restoreFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const backup = JSON.parse(ev.target.result);
+        if(!backup.items || !Array.isArray(backup.items)){
+          showToast('無効なバックアップファイルです');
+          return;
+        }
+
+        // 【修正6】各アイテムが必須プロパティを持っているか検証
+        const REQUIRED_KEYS = ['id', 'url', 'platform', 'title', 'thumb'];
+        const isValidItem = (item) => {
+          if(!item || typeof item !== 'object') return false;
+          return REQUIRED_KEYS.every(key => Object.prototype.hasOwnProperty.call(item, key) && item[key] !== null && item[key] !== undefined);
+        };
+
+        const allValid = backup.items.every(isValidItem);
+        if(!allValid){
+          showToast('バックアップデータが破損しています');
+          return;
+        }
+
+        items = backup.items;
+        saveToStorage();
+        render();
+        settingsOverlay.classList.remove('show');
+        showToast('データを復元しました');
+      } catch(e) {
+        console.error('復元エラー:', e);
+        showToast('復元に失敗しました');
+      }
+    };
+    reader.readAsText(file);
+    restoreFile.value = '';
+  });
+
+  // ========================================
+  // テーマ切り替え（設定画面要件3）
+  // ========================================
+
+  document.getElementById('darkThemeBtn').addEventListener('click', () => {
+    applyTheme('dark');
+  });
+
+  document.getElementById('lightThemeBtn').addEventListener('click', () => {
+    applyTheme('light');
+  });
+
+  // ========================================
+  // データ全消去（設定画面要件4 - 確認ダイアログ付き）
+  // ========================================
+
+  document.getElementById('deleteAllBtn').addEventListener('click', () => {
+    confirmTitle.textContent = 'すべてのデータを削除';
+    confirmMessage.textContent = 'この操作は取り消せません。本当に削除しますか？';
+    confirmOverlay.classList.add('show');
+    confirmOverlay.dataset.action = 'deleteAll';
+  });
+
+  document.getElementById('confirmCancel').addEventListener('click', () => {
+    confirmOverlay.classList.remove('show');
+    confirmOverlay.dataset.action = '';
+  });
+
+  confirmOverlay.addEventListener('click', (e) => {
+    if(e.target === confirmOverlay) {
+      confirmOverlay.classList.remove('show');
+      confirmOverlay.dataset.action = '';
+    }
+  });
+
+  document.getElementById('confirmDelete').addEventListener('click', () => {
+    if(confirmOverlay.dataset.action === 'deleteAll'){
+      items = [];
+      saveToStorage();
+      render();
+      confirmOverlay.classList.remove('show');
+      settingsOverlay.classList.remove('show');
+      showToast('すべてのデータを削除しました');
+    }
+  });
+
+  // ========================================
+  // 戻るボタン対応（要件1）
+  // ========================================
+
+  window.addEventListener('popstate', () => {
+    // 設定画面が開いている場合は閉じる
+    if(settingsOverlay.classList.contains('show')){
+      settingsOverlay.classList.remove('show');
+      return;
+    }
+    // モーダルが開いている場合は閉じる
+    if(modalBackdrop.classList.contains('show')){
+      modalBackdrop.classList.remove('show');
+      return;
+    }
+    // シートが開いている場合は閉じる
+    if(sheetBackdrop.classList.contains('show')){
+      closeSheet();
+      return;
+    }
+  });
+
+  // ブラウザの戻るボタン/ジェスチャーで popstate を発火させるために履歴を管理
+  if(history.length === 1){
+    window.history.pushState({page: 'main'}, null);
+  }
+
+  // ========================================
+  // Web Share Target 自動受け取り（要件1）
+  // ========================================
+
+  function extractSharedURL(){
+    const params = new URLSearchParams(window.location.search);
+    let url = (params.get('url') || '').trim();
+    const title = (params.get('title') || '').trim();
+    const text = (params.get('text') || '').trim();
+
+    // url パラメータが無い場合、text の中からURLらしき文字列を抽出
+    if(!url && text){
+      const match = text.match(/https?:\/\/[^\s]+/);
+      if(match) url = match[0];
+    }
+
+    return { url, title };
+  }
+
+  function handleShareTarget(){
+    const hadParams = !!window.location.search;
+    const { url, title } = extractSharedURL();
+
+    if(url){
+      // 手動追加モーダルを開かず、裏側で即座に保存フローを実行
+      runSaveFlow(url, title);
+    }
+
+    // 二重登録防止のため、処理後にクエリパラメータを履歴から消去
+    if(hadParams){
+      history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  // ========================================
+  // 初期化
+  // ========================================
+
+  loadTheme();
+  loadFromStorage();
+  render();
+  handleShareTarget();
+
+  // ========================================
+  // Service Worker 登録（PWA要件）
+  // ========================================
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('Service Worker registered:', reg.scope);
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
+        });
+    });
+  }
+</script>
+</body>
+</html>
